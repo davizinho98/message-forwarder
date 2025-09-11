@@ -15,6 +15,28 @@ func main() {
 		log.Fatalf("❌ Erro ao carregar configuração: %v", err)
 	}
 
+	// Verifica se deve usar modo webhook
+	if config.WebhookMode {
+		log.Println("🌐 Modo Webhook ativado")
+		
+		// Cria o forwarder webhook
+		forwarder, err := NewWebhookForwarder(config.BotToken, config.TargetChatID)
+		if err != nil {
+			log.Fatalf("❌ Erro ao criar webhook forwarder: %v", err)
+		}
+
+		log.Printf("🎯 Encaminhando para grupo: %d", config.TargetChatID)
+		log.Println("📋 Configure o CornerProBot2 para enviar webhook para:")
+		log.Printf("   http://seu_ip:8080/webhook")
+		
+		// Inicia servidor webhook
+		forwarder.StartWebhookServer("8080")
+		return
+	}
+
+	// Modo bot tradicional
+	log.Println("🤖 Modo Bot ativado")
+	
 	// Cria o bot
 	bot, err := tgbotapi.NewBotAPI(config.BotToken)
 	if err != nil {
@@ -30,8 +52,8 @@ func main() {
 
 // startMessageForwarder inicia o processo de escuta e reenvio de mensagens
 func startMessageForwarder(bot *tgbotapi.BotAPI, config *Config) {
-	log.Printf("👂 Escutando mensagens da conversa privada (ID: %d) para reenviar para o grupo (ID: %d)", 
-		config.SourceChatID, config.TargetChatID)
+	log.Printf("👂 Aguardando mensagens enviadas para o bot (de qualquer usuário/bot) para reenviar para o grupo (ID: %d)", 
+		config.TargetChatID)
 
 	// Configura updates
 	u := tgbotapi.NewUpdate(0)
@@ -40,25 +62,40 @@ func startMessageForwarder(bot *tgbotapi.BotAPI, config *Config) {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
+		if config.Debug {
+			log.Printf("🔔 Update recebido: %+v", update)
+		}
 		if update.Message == nil {
 			continue
 		}
 
 		message := update.Message
 
-		// Verifica se a mensagem é da conversa privada fonte (bot de terceiros)
-		if message.Chat.ID != config.SourceChatID {
-			if config.Debug {
-				log.Printf("🔍 Mensagem ignorada - Chat ID: %d (esperado: %d)", 
-					message.Chat.ID, config.SourceChatID)
+		// Se source_chat_id for 0, aceita qualquer conversa privada
+		// Senão, filtra por ID específico
+		if config.SourceChatID != 0 {
+			if message.Chat.ID != config.SourceChatID {
+				if config.Debug {
+					log.Printf("🔍 Mensagem ignorada - Chat ID: %d (esperado: %d)", 
+						message.Chat.ID, config.SourceChatID)
+				}
+				continue
 			}
-			continue
 		}
 
 		// Verifica se é realmente uma conversa privada (não grupo)
 		if !message.Chat.IsPrivate() {
-			log.Printf("⚠️ Mensagem ignorada - Não é conversa privada (Chat ID: %d)", message.Chat.ID)
+			if config.Debug {
+				log.Printf("⚠️ Mensagem ignorada - Não é conversa privada (Chat ID: %d)", message.Chat.ID)
+			}
 			continue
+		}
+
+		// Se chegou até aqui, mostra informações do chat para descobrir IDs
+		if config.Debug {
+			log.Printf("📍 Chat encontrado - ID: %d, Tipo: %s, Username: %s, Nome: %s %s", 
+				message.Chat.ID, message.Chat.Type, message.Chat.UserName, 
+				message.Chat.FirstName, message.Chat.LastName)
 		}
 
 		// Log da mensagem recebida
@@ -66,6 +103,12 @@ func startMessageForwarder(bot *tgbotapi.BotAPI, config *Config) {
 			message.From.UserName, truncateString(message.Text, 50))
 
 		// Reenvia a mensagem
+		forwardErr := forwardMessage(bot, message, config.TargetChatID)
+		if forwardErr != nil {
+			log.Printf("❌ Erro ao reenviar mensagem: %v", forwardErr)
+		} else {
+			log.Printf("✅ Mensagem reenviada com sucesso")
+		}
 		err := forwardMessage(bot, message, config.TargetChatID)
 		if err != nil {
 			log.Printf("❌ Erro ao reenviar mensagem: %v", err)

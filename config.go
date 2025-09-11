@@ -10,6 +10,7 @@ type Config struct {
 	BotToken       string `json:"bot_token"`
 	SourceChatID   int64  `json:"source_chat_id"`
 	TargetChatID   int64  `json:"target_chat_id"`
+	WebhookMode    bool   `json:"webhook_mode"`
 	Debug          bool   `json:"debug"`
 }
 

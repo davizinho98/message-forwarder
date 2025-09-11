@@ -41,5 +41,12 @@ Thumbs.db
 .env
 .env.local
 config.json
+client_config.json
 config.local.yaml
 config.local.json
+
+# Arquivos de sessão do Pyrogram
+message_forwarder.session
+*.session
+__pycache__/
+*.pyc
