@@ -1,0 +1,44 @@
+# Binários
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Arquivos de teste
+*.test
+
+# Arquivos de cobertura de teste
+*.out
+
+# Arquivos de build
+bin/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Dependências do Go
+vendor/
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Arquivos do OS
+.DS_Store
+Thumbs.db
+
+# Arquivos de configuração local
+.env
+.env.local
+config.local.yaml
+config.local.json
