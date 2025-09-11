@@ -1,14 +1,163 @@
 package main
 
 import (
-	"fmt"
 	"log"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func main() {
-	fmt.Println("Message Forwarder - Projeto Go")
-	log.Println("Aplicação iniciada com sucesso!")
+	log.Println("🚀 Message Forwarder - Iniciando...")
+
+	// Carrega a configuração
+	config, err := LoadConfig("config.json")
+	if err != nil {
+		log.Fatalf("❌ Erro ao carregar configuração: %v", err)
+	}
+
+	// Cria o bot
+	bot, err := tgbotapi.NewBotAPI(config.BotToken)
+	if err != nil {
+		log.Fatalf("❌ Erro ao criar bot: %v", err)
+	}
+
+	bot.Debug = config.Debug
+	log.Printf("✅ Bot autorizado como %s", bot.Self.UserName)
+
+	// Inicia o message forwarder
+	startMessageForwarder(bot, config)
+}
+
+// startMessageForwarder inicia o processo de escuta e reenvio de mensagens
+func startMessageForwarder(bot *tgbotapi.BotAPI, config *Config) {
+	log.Printf("👂 Escutando mensagens do chat %d para reenviar para %d", 
+		config.SourceChatID, config.TargetChatID)
+
+	// Configura updates
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+
+	updates := bot.GetUpdatesChan(u)
+
+	for update := range updates {
+		if update.Message == nil {
+			continue
+		}
+
+		message := update.Message
+
+		// Verifica se a mensagem é do chat fonte
+		if message.Chat.ID != config.SourceChatID {
+			continue
+		}
+
+		// Log da mensagem recebida
+		log.Printf("📨 Nova mensagem de %s: %s", 
+			message.From.UserName, truncateString(message.Text, 50))
+
+		// Reenvia a mensagem
+		err := forwardMessage(bot, message, config.TargetChatID)
+		if err != nil {
+			log.Printf("❌ Erro ao reenviar mensagem: %v", err)
+		} else {
+			log.Printf("✅ Mensagem reenviada com sucesso")
+		}
+	}
+}
+
+// forwardMessage reenvia uma mensagem para o chat de destino
+func forwardMessage(bot *tgbotapi.BotAPI, originalMessage *tgbotapi.Message, targetChatID int64) error {
+	var msg tgbotapi.Chattable
+
+	// Determina o tipo de mensagem e cria a mensagem apropriada
+	switch {
+	case originalMessage.Text != "":
+		// Mensagem de texto
+		text := formatMessage(originalMessage)
+		msg = tgbotapi.NewMessage(targetChatID, text)
+		
+	case originalMessage.Photo != nil:
+		// Foto
+		photos := originalMessage.Photo
+		if len(photos) > 0 {
+			// Pega a foto de maior qualidade
+			photo := photos[len(photos)-1]
+			photoMsg := tgbotapi.NewPhoto(targetChatID, tgbotapi.FileID(photo.FileID))
+			photoMsg.Caption = formatMessage(originalMessage)
+			msg = photoMsg
+		}
+		
+	case originalMessage.Document != nil:
+		// Documento
+		docMsg := tgbotapi.NewDocument(targetChatID, tgbotapi.FileID(originalMessage.Document.FileID))
+		docMsg.Caption = formatMessage(originalMessage)
+		msg = docMsg
+		
+	case originalMessage.Video != nil:
+		// Vídeo
+		videoMsg := tgbotapi.NewVideo(targetChatID, tgbotapi.FileID(originalMessage.Video.FileID))
+		videoMsg.Caption = formatMessage(originalMessage)
+		msg = videoMsg
+		
+	case originalMessage.Audio != nil:
+		// Áudio
+		audioMsg := tgbotapi.NewAudio(targetChatID, tgbotapi.FileID(originalMessage.Audio.FileID))
+		audioMsg.Caption = formatMessage(originalMessage)
+		msg = audioMsg
+		
+	case originalMessage.Voice != nil:
+		// Mensagem de voz
+		voiceMsg := tgbotapi.NewVoice(targetChatID, tgbotapi.FileID(originalMessage.Voice.FileID))
+		msg = voiceMsg
+		
+	case originalMessage.Sticker != nil:
+		// Sticker
+		stickerMsg := tgbotapi.NewSticker(targetChatID, tgbotapi.FileID(originalMessage.Sticker.FileID))
+		msg = stickerMsg
+		
+	default:
+		// Tipo de mensagem não suportado
+		text := formatMessage(originalMessage)
+		if text == "" {
+			text = "📎 Mensagem de tipo não suportado"
+		}
+		msg = tgbotapi.NewMessage(targetChatID, text)
+	}
+
+	_, err := bot.Send(msg)
+	return err
+}
+
+// formatMessage formata a mensagem com informações do remetente
+func formatMessage(message *tgbotapi.Message) string {
+	var username string
+	if message.From.UserName != "" {
+		username = "@" + message.From.UserName
+	} else {
+		username = message.From.FirstName
+		if message.From.LastName != "" {
+			username += " " + message.From.LastName
+		}
+	}
+
+	var text string
+	if message.Text != "" {
+		text = message.Text
+	} else if message.Caption != "" {
+		text = message.Caption
+	}
+
+	if text != "" {
+		return "👤 " + username + ":\n" + text
+	}
 	
-	// TODO: Implementar funcionalidades do message forwarder
-	fmt.Println("Pronto para desenvolvimento!")
+	return "👤 " + username
+}
+
+// truncateString trunca uma string se ela for muito longa
+func truncateString(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
 }

@@ -40,5 +40,6 @@ Thumbs.db
 # Arquivos de configuração local
 .env
 .env.local
+config.json
 config.local.yaml
 config.local.json
