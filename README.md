@@ -1,14 +1,15 @@
 # Message Forwarder
 
-Um bot Telegram em Go para encaminhar mensagens automaticamente entre grupos.
+Um bot Telegram em Go para encaminhar mensagens de conversas privadas para grupos.
 
 ## Descrição
 
-Este projeto implementa um bot Telegram que escuta mensagens de um grupo específico e as reenvia automaticamente para outro grupo. O bot suporta diferentes tipos de mensagem incluindo texto, fotos, vídeos, documentos, áudio, mensagens de voz e stickers.
+Este projeto implementa um bot Telegram que escuta mensagens de uma **conversa privada específica** (como um bot de terceiros que envia notificações) e as reenvia automaticamente para um **grupo de destino**. Perfeito para compartilhar alertas, notificações ou mensagens importantes com uma equipe.
 
 ## Funcionalidades
 
-- ✅ Encaminhamento automático de mensagens entre grupos
+- ✅ Encaminhamento automático de mensagens de **conversa privada** para **grupo**
+- ✅ Ideal para bots de terceiros (alertas, notificações, monitoramento)
 - ✅ Suporte a múltiplos tipos de mídia (fotos, vídeos, documentos, áudio, etc.)
 - ✅ Formatação das mensagens com informações do remetente original
 - ✅ Logs detalhados de atividade
@@ -19,22 +20,26 @@ Este projeto implementa um bot Telegram que escuta mensagens de um grupo especí
 
 - Go 1.19 ou superior
 - Bot Token do Telegram (obtido via @BotFather)
-- IDs dos grupos fonte e destino
+- ID da conversa privada fonte (bot de terceiros)
+- ID do grupo de destino
 
 ## Instalação
 
 1. Clone o repositório:
+
 ```bash
 git clone <url-do-repositorio>
 cd message-forwarder
 ```
 
 2. Instale as dependências:
+
 ```bash
 go mod download
 ```
 
 3. Configure o bot:
+
 ```bash
 cp config.example.json config.json
 # Edite config.json com suas configurações
@@ -48,14 +53,21 @@ cp config.example.json config.json
 2. Digite `/newbot` e siga as instruções
 3. Copie o token fornecido
 
-### 2. Obter IDs dos Grupos
+### 2. Obter IDs da Conversa e Grupo
 
-Para obter o ID de um grupo:
+**Para obter o ID da conversa privada (bot de terceiros):**
 
-1. Adicione o bot ao grupo
+1. Adicione seu bot à conversa com o bot de terceiros (se possível) ou
+2. Execute o bot temporariamente com `debug: true`
+3. Inicie uma conversa com o bot de terceiros ou aguarde ele enviar uma mensagem
+4. O ID da conversa aparecerá nos logs (será um número positivo)
+
+**Para obter o ID do grupo de destino:**
+
+1. Adicione o bot ao grupo de destino
 2. Execute o bot temporariamente com `debug: true`
 3. Envie uma mensagem no grupo
-4. O ID aparecerá nos logs
+4. O ID aparecerá nos logs (será um número negativo)
 
 ### 3. Arquivo de Configuração
 
@@ -64,16 +76,16 @@ Edite o arquivo `config.json`:
 ```json
 {
   "bot_token": "1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi",
-  "source_chat_id": -1234567890,
-  "target_chat_id": -9876543210,
-  "debug": false
+  "source_chat_id": 123456789,
+  "target_chat_id": -1234567890,
+  "debug": true
 }
 ```
 
 - `bot_token`: Token do seu bot obtido via @BotFather
-- `source_chat_id`: ID do grupo de onde as mensagens serão copiadas
-- `target_chat_id`: ID do grupo para onde as mensagens serão enviadas
-- `debug`: Define se deve mostrar logs detalhados
+- `source_chat_id`: ID da conversa privada (bot de terceiros) - **número positivo**
+- `target_chat_id`: ID do grupo de destino - **número negativo**
+- `debug`: Define se deve mostrar logs detalhados (útil para descobrir IDs)
 
 ## Execução
 
@@ -107,10 +119,18 @@ message-forwarder/
 
 1. O bot conecta-se ao Telegram usando o token fornecido
 2. Escuta continuamente por novas mensagens
-3. Filtra mensagens apenas do grupo fonte configurado
-4. Formata a mensagem incluindo informações do remetente original
-5. Reenvia a mensagem para o grupo destino
-6. Registra logs da atividade
+3. Filtra mensagens apenas da conversa privada fonte (bot de terceiros)
+4. Verifica se é realmente uma conversa privada (não grupo)
+5. Formata a mensagem incluindo informações do remetente original
+6. Reenvia a mensagem para o grupo de destino
+7. Registra logs da atividade
+
+## Casos de Uso Comuns
+
+- 🚨 **Alertas de monitoramento**: Receber alertas de bots de monitoramento e compartilhar com a equipe
+- 📊 **Notificações de sistemas**: Encaminhar notificações de bots de CI/CD, servidores, etc.
+- 💰 **Alertas financeiros**: Compartilhar alertas de preços, investimentos ou transações
+- 🔔 **Notificações personalizadas**: Qualquer bot que envie notificações importantes
 
 ## Tipos de Mensagem Suportados
 
@@ -138,19 +158,29 @@ Este projeto usa apenas uma dependência externa:
 ## Troubleshooting
 
 ### Bot não responde
+
 - Verifique se o token está correto
-- Certifique-se de que o bot foi adicionado aos grupos
-- Verifique se os IDs dos grupos estão corretos
+- Certifique-se de que o bot tem acesso à conversa privada fonte
+- Verifique se os IDs estão corretos (conversa privada = positivo, grupo = negativo)
 
 ### Erro de permissão
-- O bot precisa ter permissão para ler mensagens no grupo fonte
-- O bot precisa ter permissão para enviar mensagens no grupo destino
 
-### Como obter IDs dos grupos
+- O bot precisa conseguir receber mensagens da conversa privada fonte
+- O bot precisa ter permissão para enviar mensagens no grupo de destino
+- Adicione o bot como administrador do grupo de destino se necessário
+
+### Como obter IDs corretos
+
 1. Defina `debug: true` no config.json
 2. Execute o bot
-3. Envie uma mensagem em qualquer grupo onde o bot está
-4. O ID aparecerá nos logs
+3. Para conversa privada: envie uma mensagem para o bot ou aguarde o bot de terceiros enviar
+4. Para grupo: envie uma mensagem no grupo onde o bot está
+5. Os IDs aparecerão nos logs
+
+### Diferença entre IDs
+
+- **Conversa privada**: ID positivo (ex: 123456789)
+- **Grupo/Canal**: ID negativo (ex: -1234567890)
 
 ## Contribuição
 

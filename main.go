@@ -30,7 +30,7 @@ func main() {
 
 // startMessageForwarder inicia o processo de escuta e reenvio de mensagens
 func startMessageForwarder(bot *tgbotapi.BotAPI, config *Config) {
-	log.Printf("👂 Escutando mensagens do chat %d para reenviar para %d", 
+	log.Printf("👂 Escutando mensagens da conversa privada (ID: %d) para reenviar para o grupo (ID: %d)", 
 		config.SourceChatID, config.TargetChatID)
 
 	// Configura updates
@@ -46,8 +46,18 @@ func startMessageForwarder(bot *tgbotapi.BotAPI, config *Config) {
 
 		message := update.Message
 
-		// Verifica se a mensagem é do chat fonte
+		// Verifica se a mensagem é da conversa privada fonte (bot de terceiros)
 		if message.Chat.ID != config.SourceChatID {
+			if config.Debug {
+				log.Printf("🔍 Mensagem ignorada - Chat ID: %d (esperado: %d)", 
+					message.Chat.ID, config.SourceChatID)
+			}
+			continue
+		}
+
+		// Verifica se é realmente uma conversa privada (não grupo)
+		if !message.Chat.IsPrivate() {
+			log.Printf("⚠️ Mensagem ignorada - Não é conversa privada (Chat ID: %d)", message.Chat.ID)
 			continue
 		}
 
