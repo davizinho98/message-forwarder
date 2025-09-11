@@ -1,6 +1,0 @@
-{
-  "bot_token": "SEU_BOT_TOKEN_AQUI",
-  "source_chat_id": 123456789,
-  "target_chat_id": -1234567890,
-  "debug": true
-}

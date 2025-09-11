@@ -1,195 +1,173 @@
-# Message Forwarder
+# 🤖 Message Forwarder Automático
 
-Um bot Telegram em Go para encaminhar mensagens de conversas privadas para grupos.
+**Automação completa para encaminhar mensagens do Telegram usando Python.**
 
-## Descrição
+Sistema que monitora automaticamente mensagens do **CornerProBot2** e as encaminha em tempo real para um grupo específico, sem qualquer intervenção manual.
 
-Este projeto implementa um bot Telegram que escuta mensagens de uma **conversa privada específica** (como um bot de terceiros que envia notificações) e as reenvia automaticamente para um **grupo de destino**. Perfeito para compartilhar alertas, notificações ou mensagens importantes com uma equipe.
+## 🎯 **Como Funciona**
 
-## Funcionalidades
-
-- ✅ Encaminhamento automático de mensagens de **conversa privada** para **grupo**
-- ✅ Ideal para bots de terceiros (alertas, notificações, monitoramento)
-- ✅ Suporte a múltiplos tipos de mídia (fotos, vídeos, documentos, áudio, etc.)
-- ✅ Formatação das mensagens com informações do remetente original
-- ✅ Logs detalhados de atividade
-- ✅ Configuração via arquivo JSON
-- ✅ Mínimas dependências (apenas a biblioteca oficial do Telegram)
-
-## Requisitos
-
-- Go 1.19 ou superior
-- Bot Token do Telegram (obtido via @BotFather)
-- ID da conversa privada fonte (bot de terceiros)
-- ID do grupo de destino
-
-## Instalação
-
-1. Clone o repositório:
-
-```bash
-git clone <url-do-repositorio>
-cd message-forwarder
+```
+CornerProBot2 → Seu Usuário (monitoramento automático) → Grupo de Destino
 ```
 
-2. Instale as dependências:
+**100% Automático - Zero Intervenção Manual!**
 
+## ✨ **Características**
+
+- 🔄 **Monitoramento em tempo real** de mensagens do CornerProBot2
+- 🚀 **Encaminhamento automático** para grupo configurado
+- 📱 **Usa sua própria conta** do Telegram (não precisa de bot)
+- 🛡️ **Seguro** - usa biblioteca oficial Pyrogram
+- ⚡ **Instantâneo** - mensagens aparecem no grupo imediatamente
+- 🔍 **Logs detalhados** de toda atividade
+
+## 📋 **Requisitos**
+
+- Python 3.7+
+- Conta do Telegram
+- Credenciais da API do Telegram (API_ID e API_HASH)
+
+## 🚀 **Instalação Rápida**
+
+### **Método 1: Script Automático**
 ```bash
-go mod download
+chmod +x setup.sh
+./setup.sh
 ```
 
-3. Configure o bot:
-
+### **Método 2: Manual**
 ```bash
-cp config.example.json config.json
-# Edite config.json com suas configurações
+# 1. Instalar Python e dependências
+pip3 install pyrogram
+
+# 2. Configurar
+cp client_config.example.json client_config.json
+# Edite client_config.json com suas credenciais
+
+# 3. Executar
+python3 auto_forwarder.py
 ```
 
-## Configuração
+## ⚙️ **Configuração**
 
-### 1. Criar Bot no Telegram
+### **1. Obter Credenciais da API do Telegram**
 
-1. Abra o Telegram e procure por `@BotFather`
-2. Digite `/newbot` e siga as instruções
-3. Copie o token fornecido
+1. 🌐 Acesse: https://my.telegram.org
+2. 📱 Faça login com seu número de telefone
+3. ⚙️ Vá em **"API development tools"**
+4. 🆕 Clique em **"Create new application"**
+5. 📝 Preencha os dados:
+   - **App title**: Message Forwarder
+   - **Short name**: msg-forwarder
+   - **Platform**: Desktop
+6. 🔑 Anote o **API_ID** e **API_HASH** gerados
 
-### 2. Obter IDs da Conversa e Grupo
+### **2. Configurar o Arquivo**
 
-**Para obter o ID da conversa privada (bot de terceiros):**
-
-1. Adicione seu bot à conversa com o bot de terceiros (se possível) ou
-2. Execute o bot temporariamente com `debug: true`
-3. Inicie uma conversa com o bot de terceiros ou aguarde ele enviar uma mensagem
-4. O ID da conversa aparecerá nos logs (será um número positivo)
-
-**Para obter o ID do grupo de destino:**
-
-1. Adicione o bot ao grupo de destino
-2. Execute o bot temporariamente com `debug: true`
-3. Envie uma mensagem no grupo
-4. O ID aparecerá nos logs (será um número negativo)
-
-### 3. Arquivo de Configuração
-
-Edite o arquivo `config.json`:
+Edite `client_config.json`:
 
 ```json
 {
-  "bot_token": "1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi",
-  "source_chat_id": 123456789,
-  "target_chat_id": -1234567890,
+  "api_id": 1234567,
+  "api_hash": "abcdef1234567890abcdef1234567890",
+  "phone_number": "+5511999999999",
+  "source_user_id": 779230055,
+  "target_chat_id": -4197130508,
   "debug": true
 }
 ```
 
-- `bot_token`: Token do seu bot obtido via @BotFather
-- `source_chat_id`: ID da conversa privada (bot de terceiros) - **número positivo**
-- `target_chat_id`: ID do grupo de destino - **número negativo**
-- `debug`: Define se deve mostrar logs detalhados (útil para descobrir IDs)
+**Campos:**
+- `api_id`: ID da aplicação (número)
+- `api_hash`: Hash da aplicação (string)
+- `phone_number`: Seu número no formato internacional
+- `source_user_id`: ID do CornerProBot2 (779230055)
+- `target_chat_id`: ID do seu grupo (-4197130508)
+- `debug`: Logs detalhados (true/false)
 
-## Execução
-
-Para executar o bot:
-
-```bash
-go run main.go config.go
-```
-
-Para compilar:
+## 🎮 **Execução**
 
 ```bash
-go build -o message-forwarder *.go
-./message-forwarder
+python3 auto_forwarder.py
 ```
 
-## Estrutura do Projeto
+### **Primeira Execução:**
+1. 📱 Será solicitado o **código SMS** enviado para seu telefone
+2. 🔐 Se tiver verificação em duas etapas, digite a senha
+3. ✅ Após autenticação, o sistema ficará monitorando automaticamente
+
+### **Execuções Seguintes:**
+- 🔄 Executa automaticamente sem pedir códigos (sessão salva)
+
+## 📊 **Logs do Sistema**
+
+```
+🚀 Iniciando Message Forwarder Automático...
+👤 Logado como: Seu Nome (@seu_username)
+🎯 Monitorando mensagens de: CornerProBot2 (@cornerpro2_bot)
+📤 Encaminhando para: Nome do Grupo
+👂 Aguardando mensagens... (Pressione Ctrl+C para parar)
+
+📨 Nova mensagem do CornerProBot2: 📣 Alerta Estratégia: botteste...
+✅ Mensagem encaminhada automaticamente para o grupo!
+```
+
+## 🔧 **Estrutura do Projeto**
 
 ```
 message-forwarder/
-├── main.go              # Arquivo principal com lógica do bot
-├── config.go            # Gerenciamento de configuração
-├── config.example.json  # Exemplo de configuração
-├── config.json          # Sua configuração (criado por você)
-├── go.mod               # Dependências do Go
-├── .gitignore           # Arquivos ignorados pelo Git
-└── README.md            # Este arquivo
+├── auto_forwarder.py              # Sistema principal
+├── client_config.example.json     # Exemplo de configuração  
+├── client_config.json             # Sua configuração (criar)
+├── setup.sh                       # Script de instalação
+├── README.md                       # Esta documentação
+├── .gitignore                      # Arquivos ignorados
+└── *.session                       # Sessões do Telegram (auto-gerado)
 ```
 
-## Como Funciona
+## 🛡️ **Segurança**
 
-1. O bot conecta-se ao Telegram usando o token fornecido
-2. Escuta continuamente por novas mensagens
-3. Filtra mensagens apenas da conversa privada fonte (bot de terceiros)
-4. Verifica se é realmente uma conversa privada (não grupo)
-5. Formata a mensagem incluindo informações do remetente original
-6. Reenvia a mensagem para o grupo de destino
-7. Registra logs da atividade
+- 🔒 **Credenciais protegidas**: `client_config.json` está no `.gitignore`
+- 🔐 **Sessões seguras**: Arquivos `.session` são criptografados
+- 🚫 **Não compartilhe**: Nunca compartilhe API_HASH ou arquivos .session
 
-## Casos de Uso Comuns
+## 🐛 **Troubleshooting**
 
-- 🚨 **Alertas de monitoramento**: Receber alertas de bots de monitoramento e compartilhar com a equipe
-- 📊 **Notificações de sistemas**: Encaminhar notificações de bots de CI/CD, servidores, etc.
-- 💰 **Alertas financeiros**: Compartilhar alertas de preços, investimentos ou transações
-- 🔔 **Notificações personalizadas**: Qualquer bot que envie notificações importantes
+### **Erro de autenticação**
+- ✅ Verifique se API_ID e API_HASH estão corretos
+- ✅ Confirme se o número de telefone está no formato internacional
 
-## Tipos de Mensagem Suportados
+### **Usuário fonte não encontrado**
+- ✅ Verifique se o `source_user_id` está correto (779230055)
+- ✅ Certifique-se de que o CornerProBot2 já enviou pelo menos uma mensagem
 
-- ✅ Texto simples
-- ✅ Fotos
-- ✅ Vídeos
-- ✅ Documentos
-- ✅ Arquivos de áudio
-- ✅ Mensagens de voz
-- ✅ Stickers
-- ✅ Mensagens com legenda
+### **Chat de destino não encontrado**
+- ✅ Verifique se o `target_chat_id` está correto
+- ✅ Certifique-se de que você está no grupo de destino
 
-## Segurança
+### **Código SMS não chega**
+- ✅ Aguarde alguns minutos
+- ✅ Verifique se o número está correto
+- ✅ Tente novamente
 
-- Mantenha seu `config.json` seguro e nunca o compartilhe
-- O arquivo `config.json` está no `.gitignore` para evitar commits acidentais
-- Use o arquivo `config.example.json` como template
+## 🔄 **Como Parar**
 
-## Dependências
+```bash
+Ctrl + C  # Para parar o monitoramento
+```
 
-Este projeto usa apenas uma dependência externa:
+## 📈 **Próximos Passos**
 
-- `github.com/go-telegram-bot-api/telegram-bot-api/v5` - Biblioteca oficial do Telegram Bot API
+Após configurar:
+1. ✅ Execute o sistema
+2. ✅ Aguarde uma mensagem do CornerProBot2
+3. ✅ Verifique se apareceu automaticamente no grupo
+4. ✅ Sistema funcionando - deixe rodando 24/7!
 
-## Troubleshooting
+## 🎉 **Resultado**
 
-### Bot não responde
+Agora **toda mensagem** que o CornerProBot2 enviar para você será **automaticamente encaminhada** para o grupo configurado, **em tempo real**, **sem qualquer ação sua**!
 
-- Verifique se o token está correto
-- Certifique-se de que o bot tem acesso à conversa privada fonte
-- Verifique se os IDs estão corretos (conversa privada = positivo, grupo = negativo)
+---
 
-### Erro de permissão
-
-- O bot precisa conseguir receber mensagens da conversa privada fonte
-- O bot precisa ter permissão para enviar mensagens no grupo de destino
-- Adicione o bot como administrador do grupo de destino se necessário
-
-### Como obter IDs corretos
-
-1. Defina `debug: true` no config.json
-2. Execute o bot
-3. Para conversa privada: envie uma mensagem para o bot ou aguarde o bot de terceiros enviar
-4. Para grupo: envie uma mensagem no grupo onde o bot está
-5. Os IDs aparecerão nos logs
-
-### Diferença entre IDs
-
-- **Conversa privada**: ID positivo (ex: 123456789)
-- **Grupo/Canal**: ID negativo (ex: -1234567890)
-
-## Contribuição
-
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
-
-## Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+🤖 **Message Forwarder** - Automação completa para Telegram em Python

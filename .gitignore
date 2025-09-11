@@ -1,30 +1,30 @@
-# Binários
-*.exe
-*.exe~
-*.dll
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
 *.so
-*.dylib
-
-# Arquivos de teste
-*.test
-
-# Arquivos de cobertura de teste
-*.out
-
-# Arquivos de build
-bin/
-dist/
+.Python
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # IDEs
 .vscode/
 .idea/
 *.swp
-*.swo
-*~
-
-# Dependências do Go
-vendor/
+.vscode
 
 # Arquivos de log
 *.log
@@ -37,16 +37,13 @@ vendor/
 .DS_Store
 Thumbs.db
 
-# Arquivos de configuração local
-.env
-.env.local
-config.json
+# Configuração local do Telegram
 client_config.json
-config.local.yaml
-config.local.json
 
 # Arquivos de sessão do Pyrogram
-message_forwarder.session
 *.session
-__pycache__/
-*.pyc
+*.session-journal
+
+# Arquivos de ambiente
+.env
+.env.local
