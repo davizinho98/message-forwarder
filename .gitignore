@@ -47,3 +47,16 @@ client_config.json
 # Arquivos de ambiente
 .env
 .env.local
+
+# Ambiente virtual Python
+venv/
+env/
+ENV/
+
+# Logs de produção
+*.log
+logs/
+
+# Deploy específico
+.railway/
+.fly/

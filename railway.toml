@@ -1,0 +1,16 @@
+# Configuração para Railway.app
+
+[build]
+  builder = "DOCKERFILE"
+
+[deploy]
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 10
+
+# Variáveis de ambiente necessárias (configurar no painel Railway):
+# API_ID = seu_api_id
+# API_HASH = sua_api_hash  
+# PHONE_NUMBER = seu_numero
+# SOURCE_USER_ID = 779230055
+# TARGET_CHAT_ID = id_do_seu_grupo
+# DEBUG = true

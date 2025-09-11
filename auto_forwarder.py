@@ -7,8 +7,10 @@ Monitora mensagens de um bot específico e encaminha automaticamente para um gru
 import asyncio
 import json
 import logging
+import os
 from pyrogram import Client, filters
 from pyrogram.types import Message
+from pyrogram.enums import ChatType
 
 # Configuração de logging
 logging.basicConfig(
@@ -24,7 +26,7 @@ class AutoMessageForwarder:
         
         # Cria o cliente Telegram
         self.app = Client(
-            name="message_forwarder",
+            name="message_forwarder_main",
             api_id=self.config["api_id"],
             api_hash=self.config["api_hash"],
             phone_number=self.config["phone_number"]
@@ -34,25 +36,40 @@ class AutoMessageForwarder:
         self.register_handlers()
     
     def load_config(self, config_path):
-        """Carrega a configuração do arquivo JSON"""
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
+        """Carrega a configuração do arquivo JSON ou variáveis de ambiente"""
+        
+        # Primeiro tenta variáveis de ambiente (para deploy em nuvem)
+        if os.getenv('API_ID'):
+            logger.info("📡 Usando configuração via variáveis de ambiente")
+            config = {
+                "api_id": int(os.getenv('API_ID')),
+                "api_hash": os.getenv('API_HASH'),
+                "phone_number": os.getenv('PHONE_NUMBER'),
+                "source_user_id": int(os.getenv('SOURCE_USER_ID', 779230055)),
+                "target_chat_id": int(os.getenv('TARGET_CHAT_ID')),
+                "debug": os.getenv('DEBUG', 'true').lower() == 'true'
+            }
+        else:
+            # Senão usa arquivo JSON (desenvolvimento local)
+            try:
+                logger.info("📄 Usando configuração via arquivo JSON")
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            except FileNotFoundError:
+                logger.error(f"❌ Arquivo {config_path} não encontrado e variáveis de ambiente não configuradas")
+                logger.error("💡 Configure as variáveis: API_ID, API_HASH, PHONE_NUMBER, TARGET_CHAT_ID")
+                raise
+            except json.JSONDecodeError:
+                logger.error(f"❌ Erro ao decodificar JSON do arquivo {config_path}")
+                raise
                 
-            # Valida configurações obrigatórias
-            required_fields = ["api_id", "api_hash", "phone_number", "source_user_id", "target_chat_id"]
-            for field in required_fields:
-                if field not in config:
-                    raise ValueError(f"Campo obrigatório '{field}' não encontrado na configuração")
-                    
-            return config
-            
-        except FileNotFoundError:
-            logger.error(f"Arquivo de configuração {config_path} não encontrado")
-            raise
-        except json.JSONDecodeError:
-            logger.error(f"Erro ao decodificar JSON do arquivo {config_path}")
-            raise
+        # Valida configurações obrigatórias
+        required_fields = ["api_id", "api_hash", "phone_number", "source_user_id", "target_chat_id"]
+        for field in required_fields:
+            if field not in config or config[field] is None:
+                raise ValueError(f"Campo obrigatório '{field}' não encontrado na configuração")
+                
+        return config
     
     def register_handlers(self):
         """Registra os handlers de mensagens"""
@@ -100,11 +117,18 @@ class AutoMessageForwarder:
             
             # Verifica se o usuário fonte existe
             try:
-                source_user = await self.app.get_users(self.config["source_user_id"])
+                # Primeiro tenta pelo username
+                source_user = await self.app.get_users('@cornerpro2_bot')
                 logger.info(f"🎯 Monitorando mensagens de: {source_user.first_name} (@{source_user.username})")
-            except Exception as e:
-                logger.error(f"❌ Erro ao verificar usuário fonte: {e}")
-                return
+            except Exception:
+                try:
+                    # Se falhar, tenta pelo ID como chat
+                    source_user = await self.app.get_chat(self.config["source_user_id"])
+                    logger.info(f"🎯 Monitorando mensagens de: {source_user.first_name}")
+                except Exception as e:
+                    logger.error(f"❌ Erro ao verificar usuário fonte: {e}")
+                    logger.error("💡 Certifique-se de ter conversado com @cornerpro2_bot pelo menos uma vez")
+                    return
             
             # Verifica se o chat de destino existe
             try:

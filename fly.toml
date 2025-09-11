@@ -1,0 +1,22 @@
+# Configuração para Fly.io
+
+app = "message-forwarder-bot"
+primary_region = "gru"  # São Paulo
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PYTHONUNBUFFERED = "1"
+
+# Configure estas variáveis via: fly secrets set
+# fly secrets set API_ID=seu_api_id
+# fly secrets set API_HASH=sua_api_hash
+# fly secrets set PHONE_NUMBER=seu_numero
+# fly secrets set SOURCE_USER_ID=779230055
+# fly secrets set TARGET_CHAT_ID=id_do_seu_grupo
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
