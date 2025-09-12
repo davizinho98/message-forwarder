@@ -47,7 +47,12 @@ class AutoMessageForwarder:
                 "phone_number": os.getenv('PHONE_NUMBER'),
                 "source_user_id": int(os.getenv('SOURCE_USER_ID', 779230055)),
                 "target_chat_id": int(os.getenv('TARGET_CHAT_ID')),
-                "debug": os.getenv('DEBUG', 'true').lower() == 'true'
+                "debug": os.getenv('DEBUG', 'true').lower() == 'true',
+                "strategy_filters": {
+                    "enabled": os.getenv('STRATEGY_FILTERS_ENABLED', 'false').lower() == 'true',
+                    "mode": os.getenv('STRATEGY_FILTERS_MODE', 'whitelist'),
+                    "strategies": os.getenv('STRATEGY_FILTERS_STRATEGIES', '').split(',') if os.getenv('STRATEGY_FILTERS_STRATEGIES') else []
+                }
             }
         else:
             # Senão usa arquivo JSON (desenvolvimento local)

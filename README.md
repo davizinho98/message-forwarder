@@ -202,6 +202,62 @@ python3 auto_forwarder.py
 2. 🔐 Se tiver verificação em duas etapas, digite a senha
 3. ✅ Após autenticação, o sistema ficará monitorando automaticamente
 
+- 🔄 Executa automaticamente sem pedir códigos (sessão salva)
+
+## 🌐 **Deploy na Nuvem**
+
+### **🚀 Preparação para Deploy**
+
+Gere as variáveis de ambiente automaticamente:
+
+```bash
+python3 generate_env.py
+```
+
+### **☁️ Plataformas Suportadas**
+
+**🏆 Oracle Cloud (Gratuito 24/7):**
+
+```bash
+./setup_oracle_cloud.sh
+```
+
+**🚂 Railway (Deploy automático):**
+
+1. Fork o repositório no GitHub
+2. Conecte Railway ao GitHub
+3. Configure as variáveis de ambiente
+4. Deploy automático via Dockerfile
+
+**🌊 Fly.io:**
+
+```bash
+fly secrets set API_ID=sua_api_id
+fly secrets set STRATEGY_FILTERS_ENABLED=true
+fly secrets set STRATEGY_FILTERS_STRATEGIES=over,under,corner
+```
+
+### **🎯 Filtros na Nuvem**
+
+Os filtros funcionam via **variáveis de ambiente**:
+
+```env
+# Habilitar filtros whitelist para Over/Under
+STRATEGY_FILTERS_ENABLED=true
+STRATEGY_FILTERS_MODE=whitelist
+STRATEGY_FILTERS_STRATEGIES=over,under
+
+# Bloquear estratégias específicas
+STRATEGY_FILTERS_ENABLED=true
+STRATEGY_FILTERS_MODE=blacklist
+STRATEGY_FILTERS_STRATEGIES=lay,handicap
+
+# Desabilitar filtros
+STRATEGY_FILTERS_ENABLED=false
+```
+
+📖 **Guia completo:** [HOSTING.md](HOSTING.md)
+
 ### **Execuções Seguintes:**
 
 - 🔄 Executa automaticamente sem pedir códigos (sessão salva)
@@ -224,6 +280,9 @@ python3 auto_forwarder.py
 ```
 message-forwarder/
 ├── auto_forwarder.py              # 🤖 Sistema principal
+├── setup_filters.py               # 🎯 Configurador de filtros de estratégia
+├── test_filters.py                # 🧪 Testador de filtros
+├── generate_env.py                # 🌐 Gerador de variáveis de ambiente
 ├── client_config.example.json     # 📝 Exemplo de configuração
 ├── client_config.json             # ⚙️ Sua configuração (criar)
 ├── requirements.txt               # 📦 Dependências Python
