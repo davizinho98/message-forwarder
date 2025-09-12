@@ -68,6 +68,23 @@ class AutoMessageForwarder:
         for field in required_fields:
             if field not in config or config[field] is None:
                 raise ValueError(f"Campo obrigatório '{field}' não encontrado na configuração")
+        
+        # Configurar filtros de estratégia padrão se não existirem
+        if "strategy_filters" not in config:
+            config["strategy_filters"] = {
+                "enabled": False,
+                "mode": "whitelist", 
+                "strategies": []
+            }
+        
+        # Log da configuração de filtros
+        strategy_config = config["strategy_filters"]
+        if strategy_config.get("enabled", False):
+            mode = strategy_config.get("mode", "whitelist")
+            strategies = strategy_config.get("strategies", [])
+            logger.info(f"🎯 Filtros de estratégia HABILITADOS ({mode}): {', '.join(strategies)}")
+        else:
+            logger.info("🎯 Filtros de estratégia DESABILITADOS - Todas as mensagens serão encaminhadas")
                 
         return config
     
@@ -82,6 +99,55 @@ class AutoMessageForwarder:
             """Handler para mensagens do bot fonte (CornerProBot2)"""
             await self.forward_message(client, message)
     
+    def should_forward_message(self, message_text: str) -> bool:
+        """Verifica se a mensagem deve ser encaminhada baseado nos filtros de estratégia"""
+        
+        # Se filtros não estão habilitados, encaminhar tudo
+        strategy_config = self.config.get("strategy_filters", {})
+        if not strategy_config.get("enabled", False):
+            return True
+        
+        # Se não há texto, não encaminhar
+        if not message_text:
+            return False
+        
+        # Extrair primeira linha (onde está a estratégia)
+        first_line = message_text.split('\n')[0].lower().strip()
+        
+        if self.config.get("debug", False):
+            logger.info(f"🔍 Analisando primeira linha: '{first_line}'")
+        
+        # Lista de estratégias configuradas
+        strategies = strategy_config.get("strategies", [])
+        mode = strategy_config.get("mode", "whitelist")
+        
+        # Verificar se alguma estratégia está presente na primeira linha
+        strategy_found = False
+        matched_strategy = None
+        
+        for strategy in strategies:
+            if strategy.lower() in first_line:
+                strategy_found = True
+                matched_strategy = strategy
+                break
+        
+        # Aplicar lógica de whitelist ou blacklist
+        if mode == "whitelist":
+            # Whitelist: só encaminhar se a estratégia estiver na lista
+            should_forward = strategy_found
+        else:
+            # Blacklist: encaminhar tudo EXCETO se a estratégia estiver na lista
+            should_forward = not strategy_found
+        
+        if self.config.get("debug", False):
+            status = "✅ APROVADA" if should_forward else "❌ BLOQUEADA"
+            if matched_strategy:
+                logger.info(f"🎯 Estratégia encontrada: '{matched_strategy}' - {status}")
+            else:
+                logger.info(f"🎯 Nenhuma estratégia reconhecida - {status}")
+        
+        return should_forward
+    
     async def forward_message(self, client: Client, message: Message):
         """Encaminha uma mensagem para o grupo de destino"""
         try:
@@ -89,11 +155,16 @@ class AutoMessageForwarder:
             text_preview = (message.text[:50] + "...") if message.text and len(message.text) > 50 else (message.text or "[Mídia]")
             logger.info(f"📨 Nova mensagem do CornerProBot2: {text_preview}")
             
+            # Verificar filtros de estratégia
+            if not self.should_forward_message(message.text):
+                logger.info("🚫 Mensagem bloqueada pelos filtros de estratégia")
+                return
+            
             # Formata a mensagem
             if message.text:
-                formatted_message = f"🤖 **Alerta CornerProBot2:**\n\n{message.text}"
+                formatted_message = f"{message.text}"
             else:
-                formatted_message = "🤖 **Alerta CornerProBot2:**\n\n[Mensagem com mídia]"
+                formatted_message = "[Mensagem com mídia]"
             
             # Encaminha para o grupo de destino
             await client.send_message(

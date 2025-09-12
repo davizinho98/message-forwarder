@@ -16,6 +16,7 @@ CornerProBot2 → Seu Usuário (monitoramento automático) → Grupo de Destino
 
 - 🔄 **Monitoramento em tempo real** de mensagens do CornerProBot2
 - 🚀 **Encaminhamento automático** para grupo configurado
+- 🎯 **Filtros de estratégia inteligentes** - escolha quais tipos de mensagem encaminhar
 - 📱 **Usa sua própria conta** do Telegram (não precisa de bot)
 - 🛡️ **Seguro** - usa biblioteca oficial Pyrogram
 - ⚡ **Instantâneo** - mensagens aparecem no grupo imediatamente
@@ -92,7 +93,12 @@ Edite `client_config.json`:
   "phone_number": "+5511999999999",
   "source_user_id": 779230055,
   "target_chat_id": -4197130508,
-  "debug": true
+  "debug": true,
+  "strategy_filters": {
+    "enabled": false,
+    "mode": "whitelist",
+    "strategies": ["over", "under", "corner"]
+  }
 }
 ```
 
@@ -104,6 +110,85 @@ Edite `client_config.json`:
 - `source_user_id`: ID do CornerProBot2 (779230055)
 - `target_chat_id`: ID do seu grupo (-4197130508)
 - `debug`: Logs detalhados (true/false)
+- `strategy_filters`: Configuração de filtros de estratégia (veja seção abaixo)
+
+## 🎯 **Filtros de Estratégia**
+
+**Novo recurso!** Filtre automaticamente quais tipos de mensagem são encaminhadas baseado na estratégia mencionada.
+
+### **🔧 Configuração Manual**
+
+```json
+{
+  "strategy_filters": {
+    "enabled": true,
+    "mode": "whitelist",
+    "strategies": ["over", "under", "corner", "gol"]
+  }
+}
+```
+
+**Parâmetros:**
+
+- `enabled`: `true` para ativar filtros, `false` para encaminhar tudo
+- `mode`:
+  - `"whitelist"`: Só encaminha mensagens com estratégias da lista
+  - `"blacklist"`: Encaminha tudo EXCETO mensagens com estratégias da lista
+- `strategies`: Array com estratégias para filtrar
+
+### **📖 Exemplos de Uso**
+
+**Exemplo 1: Apenas Over/Under**
+
+```json
+{
+  "enabled": true,
+  "mode": "whitelist",
+  "strategies": ["over", "under"]
+}
+```
+
+→ Só encaminha mensagens que contenham "over" ou "under" na primeira linha
+
+**Exemplo 2: Bloquear Lay**
+
+```json
+{
+  "enabled": true,
+  "mode": "blacklist",
+  "strategies": ["lay", "handicap"]
+}
+```
+
+→ Encaminha tudo EXCETO mensagens com "lay" ou "handicap"
+
+**Exemplo 3: Só Escanteios**
+
+```json
+{
+  "enabled": true,
+  "mode": "whitelist",
+  "strategies": ["corner", "escanteio"]
+}
+```
+
+→ Apenas estratégias relacionadas a escanteios
+
+### **🔍 Como Funciona a Detecção**
+
+- 📝 Analisa apenas a **primeira linha** da mensagem
+- 🔤 Não diferencia maiúsculas/minúsculas
+- 🔍 Busca parcial: "over" encontra "over 2.5", "OVER", etc.
+- ⚡ Decisão instantânea para cada mensagem
+
+**Estratégias Comuns:**
+
+- `over`, `under` - Apostas em totais
+- `corner`, `escanteio` - Escanteios
+- `gol`, `btts` - Mercados de gols
+- `lay`, `back` - Tipos de aposta
+- `handicap` - Apostas com handicap
+- `cartão` - Cartões
 
 ## 🎮 **Execução**
 
@@ -194,6 +279,7 @@ Ctrl + C  # Para parar o monitoramento
 ### **Opções para rodar 24/7 gratuitamente:**
 
 #### **1. 🐧 VPS Gratuito - Oracle Cloud (Recomendado)**
+
 - ✅ **Always Free**: 2 VMs gratuitas para sempre
 - ✅ **24/7**: Sem limite de tempo
 - ✅ **Recursos**: 1GB RAM, 1 vCPU cada VM
@@ -209,11 +295,13 @@ cd message-forwarder
 ```
 
 #### **2. 🎁 GitHub Codespaces**
+
 - ✅ **Gratuito**: 120 horas/mês
 - ✅ **Fácil**: Diretamente no browser
 - ⚠️ **Limitação**: Apenas 60 horas consecutivas
 
 #### **3. 🚀 Railway.app**
+
 - ✅ **Gratuito**: $5 créditos/mês
 - ✅ **Deploy automático**: Via GitHub
 - ⚠️ **Limitação**: ~21 dias/mês rodando
@@ -229,6 +317,7 @@ CMD ["python", "auto_forwarder.py"]
 ```
 
 #### **4. 📱 Termux (Android)**
+
 - ✅ **Grátis**: No seu próprio celular
 - ✅ **24/7**: Se deixar carregando
 - 📝 **Setup**: Instalar Termux + Python
@@ -243,6 +332,7 @@ python auto_forwarder.py
 ```
 
 #### **5. 💻 VPS Gratuito - Fly.io**
+
 - ✅ **Gratuito**: 3 VMs pequenas
 - ✅ **Simples**: Deploy via Docker
 - ⚠️ **Limitação**: 160 horas/mês
