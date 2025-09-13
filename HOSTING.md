@@ -15,7 +15,7 @@
 # 1. Criar conta em oracle.com/cloud
 # 2. Criar VM Ubuntu
 # 3. Conectar via SSH
-wget https://raw.githubusercontent.com/SEU_USUARIO/message-forwarder/main/setup_oracle_cloud.sh
+wget https://raw.githubusercontent.com/davizinho98/message-forwarder/master/setup_oracle_cloud.sh
 chmod +x setup_oracle_cloud.sh
 ./setup_oracle_cloud.sh
 ```
