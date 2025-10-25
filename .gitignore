@@ -60,3 +60,7 @@ logs/
 # Deploy específico
 .railway/
 .fly/
+
+# Dados do Matchday Fetcher
+matchday_data/
+matchday_fetcher.log

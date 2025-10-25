@@ -1,2 +1,5 @@
 pyrogram>=2.0.0
 tgcrypto>=1.2.0
+requests>=2.31.0
+schedule>=1.2.0
+pytz>=2023.3
