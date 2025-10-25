@@ -17,7 +17,7 @@ CornerProBot2 → Seu Usuário (monitoramento automático) → Grupo de Destino
 - 🔄 **Monitoramento em tempo real** de mensagens do CornerProBot2
 - 🚀 **Encaminhamento automático** para grupo configurado
 - 🎯 **Filtros de estratégia inteligentes** - escolha quais tipos de mensagem encaminhar
-- 📱 **Usa sua própria conta** do Telegram (não precisa de bot)
+- 🤖 **Modo BOT** - use um bot do Telegram (recomendado) ou sua própria conta
 - 🛡️ **Seguro** - usa biblioteca oficial Pyrogram
 - ⚡ **Instantâneo** - mensagens aparecem no grupo imediatamente
 - 🔍 **Logs detalhados** de toda atividade
@@ -82,7 +82,24 @@ python auto_forwarder.py
    - **Platform**: Desktop
 6. 🔑 Anote o **API_ID** e **API_HASH** gerados
 
-### **2. Configurar o Arquivo**
+### **2. Criar um Bot (Recomendado)**
+
+🔄 **Modo HÍBRIDO é recomendado: sua conta lê + bot envia!**
+
+1. Abra o Telegram e procure por `@BotFather`
+2. Envie o comando `/newbot`
+3. Escolha um nome e username para o bot
+4. Copie o **bot_token** fornecido
+5. Adicione o bot aos grupos/canais de **destino** (onde vai enviar)
+6. Dê permissões de administrador ao bot nos grupos de destino
+
+📖 **Guia completo:** [BOT_SETUP.md](BOT_SETUP.md)
+
+### **3. Configurar o Arquivo**
+
+#### **Opção A: Modo HÍBRIDO (Recomendado) 🔄**
+
+Usa sua conta para ler e o bot para enviar - o melhor dos dois mundos!
 
 Edite `client_config.json`:
 
@@ -91,14 +108,49 @@ Edite `client_config.json`:
   "api_id": 1234567,
   "api_hash": "abcdef1234567890abcdef1234567890",
   "phone_number": "+5511999999999",
-  "source_user_id": 779230055,
-  "target_chat_id": -4197130508,
+  "bot_token": "123456789:ABCdefGHIjklMNOpqrsTUVwxyz",
   "debug": true,
-  "strategy_filters": {
-    "enabled": false,
-    "mode": "whitelist",
-    "strategies": ["over", "under", "corner"]
-  }
+  "forwarders": [
+    {
+      "source_user_id": 779230055,
+      "target_chat_id": -4197130508,
+      "source_name": "CornerProBot2",
+      "target_name": "Meu Grupo",
+      "strategy_filters": {
+        "enabled": false,
+        "mode": "whitelist",
+        "strategies": ["over", "under", "corner"]
+      }
+    }
+  ]
+}
+```
+
+#### **Opção B: Modo BOT Puro 🤖**
+
+Apenas bot (precisa adicionar o bot em todos os grupos):
+
+```json
+{
+  "api_id": 1234567,
+  "api_hash": "abcdef1234567890abcdef1234567890",
+  "bot_token": "123456789:ABCdefGHIjklMNOpqrsTUVwxyz",
+  "debug": true,
+  "forwarders": [...]
+}
+```
+
+#### **Opção C: Modo Usuário Puro 👤**
+
+Apenas sua conta (legado):
+
+```json
+{
+  "api_id": 1234567,
+  "api_hash": "abcdef1234567890abcdef1234567890",
+  "phone_number": "+5511999999999",
+  "debug": true,
+  "forwarders": [...]
 }
 ```
 
@@ -106,11 +158,24 @@ Edite `client_config.json`:
 
 - `api_id`: ID da aplicação (número)
 - `api_hash`: Hash da aplicação (string)
-- `phone_number`: Seu número no formato internacional
-- `source_user_id`: ID do CornerProBot2 (779230055)
-- `target_chat_id`: ID do seu grupo (-4197130508)
-- `debug`: Logs detalhados (true/false)
-- `strategy_filters`: Configuração de filtros de estratégia (veja seção abaixo)
+- `bot_token`: Token do bot (para modo BOT) **OU**
+- `phone_number`: Seu número no formato internacional (para modo USUÁRIO)
+- `forwarders`: Lista de configurações de encaminhamento
+  - `source_user_id`: ID da fonte (779230055 para CornerProBot2)
+  - `target_chat_id`: ID do grupo de destino
+  - `source_name`: Nome descritivo da fonte
+  - `target_name`: Nome descritivo do destino
+  - `strategy_filters`: Filtros de estratégia (veja seção abaixo)
+
+### **4. Obter IDs de Chats**
+
+Use o script auxiliar para descobrir os IDs:
+
+```bash
+python get_chat_ids.py
+```
+
+Isso vai listar todos os chats/grupos/canais acessíveis e seus IDs.
 
 ## 🎯 **Filtros de Estratégia**
 
@@ -280,6 +345,7 @@ STRATEGY_FILTERS_ENABLED=false
 ```
 message-forwarder/
 ├── auto_forwarder.py              # 🤖 Sistema principal
+├── get_chat_ids.py                # 🔍 Script para obter IDs de chats
 ├── setup_filters.py               # 🎯 Configurador de filtros de estratégia
 ├── test_filters.py                # 🧪 Testador de filtros
 ├── generate_env.py                # 🌐 Gerador de variáveis de ambiente
@@ -292,6 +358,7 @@ message-forwarder/
 ├── Dockerfile                     # 🐳 Para deploy em nuvem
 ├── railway.toml                   # 🚂 Config Railway
 ├── fly.toml                       # 🌊 Config Fly.io
+├── BOT_SETUP.md                   # 🤖 Guia de configuração do bot
 ├── HOSTING.md                     # 📖 Guia completo de hospedagem
 ├── README.md                      # 📋 Esta documentação
 ├── .gitignore                     # 🔒 Arquivos ignorados

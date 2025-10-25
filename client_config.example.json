@@ -2,12 +2,19 @@
   "api_id": 0,
   "api_hash": "SEU_API_HASH_AQUI",
   "phone_number": "SEU_NUMERO_AQUI",
-  "source_user_id": 0,
-  "target_chat_id": -0,
+  "bot_token": "SEU_BOT_TOKEN_AQUI",
   "debug": true,
-  "strategy_filters": {
-    "enabled": true,
-    "mode": "whitelist",
-    "strategies": ["over", "under", "corner", "gol", "btts"]
-  }
+  "forwarders": [
+    {
+      "source_user_id": 0,
+      "target_chat_id": -0,
+      "source_name": "Nome da Fonte",
+      "target_name": "Nome do Destino",
+      "strategy_filters": {
+        "enabled": true,
+        "mode": "whitelist",
+        "strategies": ["over", "under", "corner", "gol", "btts"]
+      }
+    }
+  ]
 }
