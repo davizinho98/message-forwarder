@@ -223,7 +223,7 @@ class AutoMessageForwarder:
         
         if self.config.get("debug", False):
             source_id = forwarder_config["source_user_id"]
-            logger.info(f"🔍 [{source_id}] Analisando primeira linha: '{first_line}'")
+            logger.info(f"🔍 [{source_id}] Analisando primeira linha: '{first_line}'\n Segunda linha: '{second_line}'")
         
         # Lista de estratégias configuradas
         strategies = strategy_config.get("strategies", [])
