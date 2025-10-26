@@ -1,0 +1,22 @@
+INVALID_LEAGUES = {
+  "Argentinian": "Argentina",
+  "Austrian": "Austria",
+  "Belgian": "Belgium",
+  "Colombian": "Colombia",
+  "Costa Rican": "Costa",
+  "English": "England",
+  "Icelandic": "Iceland",
+  "Japanese": "Japan",
+  "Mexican": "Mexico",
+  "Scottish Premiership": "Scotland Premiership",
+  "Spanish": "Spain",
+  "Ukrainian": "Ukraine",
+  "Friendlies International": "World Friendly",
+  "Brazilian Serie B": "Brazil Serie B",
+  "French Ligue 2": "France Ligue 2",
+  "South Korean": "Korea Republic",
+  "AFC Champions League": "Asia AFC Champions League",
+  "FIFA World Cup Qualifiers - Americas": "WC Qualification South America",
+  "FIFA World Cup Qualifiers - Africa": "Africa WC Qualification",
+  "FIFA World Cup Qualifiers - Asia": "World Asian Cup Qualification"
+}

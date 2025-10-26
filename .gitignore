@@ -64,3 +64,10 @@ logs/
 # Dados do Matchday Fetcher
 matchday_data/
 matchday_fetcher.log
+
+# Análises HTML dos jogos
+analysis_html/
+matchday-fetcher.service
+
+# Equivalências personalizadas
+equivalences/
