@@ -933,66 +933,65 @@ class AutoMessageForwarder:
                     
                     # Verificar se é estratégia "Lay 0x1" para buscar análise
                     stats_text = ""
-                    # if message.text:
-                    #     first_line = message.text.split('\n')[0].lower().strip() if message.text else ""
-                    #     second_line = message.text.split('\n')[1].lower().strip() if len(message.text.split('\n')) > 1 else ""
+                    if message.text:
+                        first_line = message.text.split('\n')[0].lower().strip() if message.text else ""
+                        second_line = message.text.split('\n')[1].lower().strip() if len(message.text.split('\n')) > 1 else ""
                         
-                    #     # Verificar se contém "Lay 0x1" na primeira ou segunda linha
-                    #     if ("lay 0x1" in first_line or "lay 0x1" in second_line) and target_id != -4622065752:
-                    #         logger.info(f"🎯 Estratégia 'Lay 0x1' detectada! Buscando análise do jogo...")
-                            
+                        # Verificar se contém "Lay 0x1" na primeira ou segunda linha
+                        if ("lay 0x1" in first_line or "lay 0x1" in second_line or "lay 1x2" in first_line or "lay 1x2" in second_line):                            
                             # Extrair liga e times da mensagem
-                            # league, home_team, away_team = extract_league_and_teams(message.text)
+                            league, home_team, away_team = extract_league_and_teams(message.text)
                             
-                            # if league and home_team and away_team:
-                            #     logger.info(f"📊 Liga original: {league}")
-                            #     logger.info(f"🏠 Casa: {home_team}")
-                            #     logger.info(f"✈️  Fora: {away_team}")
+                            if league and home_team and away_team:
+                                # logger.info(f"📊 Liga original: {league}")
+                                # logger.info(f"🏠 Casa: {home_team}")
+                                # logger.info(f"✈️  Fora: {away_team}")
                                 
                                 # Converter nome da liga e verificar validade
-                                # converted_league, league_validity_emoji = convert_league_name(league)
+                                converted_league, league_validity_emoji = convert_league_name(league)
                                 # logger.info(f"📊 Liga convertida: {converted_league}")
                                 
                                 # Buscar jogo no matchday JSON usando a liga convertida
-                                # home_name, away_name, game_id = find_game_in_matchday(converted_league, home_team, away_team)
+                                home_name, away_name, game_id = find_game_in_matchday(converted_league, home_team, away_team)
                                 
-                            #     if home_name and away_name and game_id:
-                            #         # Buscar análise do jogo e extrair estatísticas
-                            #         ppj_fav, media_gm_casa, media_gs_fora, url = fetch_game_analysis(home_name, away_name, game_id)
+                                if home_name and away_name and game_id:
+                                    # Buscar análise do jogo e extrair estatísticas
+                                    ppj_fav, media_gm_casa, media_gs_fora, url = fetch_game_analysis(home_name, away_name, game_id)
                                     
-                            #         if ppj_fav or media_gm_casa or media_gs_fora:
-                            #             logger.info(f"✅ Estatísticas extraídas com sucesso!")
+                                    # if ppj_fav or media_gm_casa or media_gs_fora:
+                                    #     logger.info(f"✅ Estatísticas extraídas com sucesso!")
                                         
-                            #             # Montar texto com estatísticas
-                            #             stats_text = "\n\n📊 Critérios:"
-                            #             # Adicionar critério de liga válida/inválida
-                            #             stats_text += f"\n🏆 Liga Válida: {league_validity_emoji}"
-                            #             if ppj_fav:
-                            #               if float(ppj_fav) < 1.2:
-                            #                 stats_text += f"\n🎯 PPJ Fav: {ppj_fav} ❌"
-                            #               else:
-                            #                 stats_text += f"\n🎯 PPJ Fav: {ppj_fav} ✅"
-                            #             if media_gm_casa:
-                            #                 if float(media_gm_casa) < 1:
-                            #                     stats_text += f"\n⚽ Média G.M Casa: {media_gm_casa} ❌"
-                            #                 else:
-                            #                     stats_text += f"\n⚽ Média G.M Casa: {media_gm_casa} ✅"
-                            #             if media_gs_fora:
-                            #                 if float(media_gs_fora) < 0.8:
-                            #                     stats_text += f"\n🛡️ Média G.S Fora: {media_gs_fora} ❌"
-                            #                 else:
-                            #                     stats_text += f"\n🛡️ Média G.S Fora: {media_gs_fora} ✅"
-                            #             stats_text += f"\n\n{url}"
-                            #         else:
-                            #             # Mesmo sem dados da partida, mostrar critério da liga
-                            #             stats_text = f"\n\n📊 Critérios:\n🏆 Liga Válida: {league_validity_emoji}"
-                            #             stats_text += f"\n\n{url}"
-                            #             logger.warning(f"⚠️  Não foi possível extrair estatísticas ({url})")
-                            #     else:
-                            #       # Mesmo sem encontrar o jogo, mostrar critério da liga
-                            #       stats_text = f"\n\n📊 Critérios:\n🏆 Liga Válida: {league_validity_emoji}"
-                            #       stats_text += f"\n\nDados da partida não encontrados"
-                            #       logger.warning(f"⚠️  Jogo não encontrado no matchday")
+                                    #     # Montar texto com estatísticas
+                                    #     stats_text = "\n\n📊 Critérios:"
+                                    #     # Adicionar critério de liga válida/inválida
+                                    #     # stats_text += f"\n🏆 Liga Válida: {league_validity_emoji}"
+                                    #     if ppj_fav:
+                                    #       if float(ppj_fav) < 1.2:
+                                    #         stats_text += f"\n🎯 PPJ Fav: {ppj_fav} ❌"
+                                    #       else:
+                                    #         stats_text += f"\n🎯 PPJ Fav: {ppj_fav} ✅"
+                                    #     if media_gm_casa:
+                                    #         if float(media_gm_casa) < 1:
+                                    #             stats_text += f"\n⚽ Média G.M Casa: {media_gm_casa} ❌"
+                                    #         else:
+                                    #             stats_text += f"\n⚽ Média G.M Casa: {media_gm_casa} ✅"
+                                    #     if media_gs_fora:
+                                    #         if float(media_gs_fora) < 0.8:
+                                    #             stats_text += f"\n🛡️ Média G.S Fora: {media_gs_fora} ❌"
+                                    #         else:
+                                    #             stats_text += f"\n🛡️ Média G.S Fora: {media_gs_fora} ✅"
+                                    #     stats_text += f"\n\n{url}"
+                                    # else:
+                                    #     # Mesmo sem dados da partida, mostrar critério da liga
+                                    #     stats_text = f"\n\n📊 Critérios:\n🏆 Liga Válida: {league_validity_emoji}"
+                                    #     stats_text += f"\n\n{url}"
+                                    #     logger.warning(f"⚠️  Não foi possível extrair estatísticas ({url})")
+                                    stats_text += f"\n\n{url}"
+                                # else:
+                                #   # Mesmo sem encontrar o jogo, mostrar critério da liga
+                                #   stats_text = f"\n\n📊 Critérios:\n🏆 Liga Válida: {league_validity_emoji}"
+                                #   stats_text += f"\n\nDados da partida não encontrados"
+                                #   logger.warning(f"⚠️  Jogo não encontrado no matchday")
                             # else:
                             #   stats_text += f"\n\nDados da partida não encontrados"
                             #   logger.warning(f"⚠️  Não foi possível extrair liga/times da mensagem")
