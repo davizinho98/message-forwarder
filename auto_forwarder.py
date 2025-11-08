@@ -894,121 +894,130 @@ class AutoMessageForwarder:
         
         return should_forward
     
-    def get_forwarder_config(self, source_user_id: int) -> dict:
-        """Encontra a configuração do forwarder para um source_user_id específico"""
+    def get_forwarder_config(self, source_user_id: int) -> list:
+        """Encontra todas as configurações de forwarders para um source_user_id específico"""
+        matching_forwarders = []
         for forwarder in self.config["forwarders"]:
             if forwarder["source_user_id"] == source_user_id:
-                return forwarder
-        return None
+                matching_forwarders.append(forwarder)
+        return matching_forwarders
     
     async def forward_message(self, client: Client, message: Message):
-        """Encaminha uma mensagem para o grupo de destino apropriado"""
+        """Encaminha uma mensagem para todos os grupos de destino configurados"""
         try:
             # Determinar ID da fonte baseado no tipo de mensagem
-
-                # Mensagem de grupo/canal
             source_id = message.chat.id
 
             logger.debug(f"📩 Mensagem recebida de {source_id}: {message.text or '[Mídia]'}")
             
-            # Encontrar configuração do forwarder para esta fonte
-            forwarder_config = self.get_forwarder_config(source_id)
-            if not forwarder_config:
+            # Encontrar todas as configurações de forwarder para esta fonte
+            forwarder_configs = self.get_forwarder_config(source_id)
+            if not forwarder_configs:
                 logger.warning(f"⚠️  Nenhuma configuração encontrada para source_id: {source_id}")
                 return
             
             # Log da mensagem recebida
             text_preview = (message.text[:50] + "...") if message.text and len(message.text) > 50 else (message.text or "[Mídia]")
-            target_id = forwarder_config["target_chat_id"]
-            logger.info(f"📨 [{source_id}→{target_id}] Nova mensagem: {text_preview}")
+            logger.info(f"📨 [{source_id}] Nova mensagem recebida: {text_preview}")
+            logger.info(f"🎯 [{source_id}] Processando {len(forwarder_configs)} destino(s)")
             
-            # Verificar filtros de estratégia para este forwarder específico
-            if not self.should_forward_message(message.text, forwarder_config):
-                logger.info(f"🚫 [{source_id}→{target_id}] Mensagem bloqueada pelos filtros de estratégia")
-                return
-            
-            # Verificar se é estratégia "Lay 0x1" para buscar análise
-            stats_text = ""
-            if message.text:
-                first_line = message.text.split('\n')[0].lower().strip() if message.text else ""
-                second_line = message.text.split('\n')[1].lower().strip() if len(message.text.split('\n')) > 1 else ""
+            # Processar cada forwarder configurado para esta fonte
+            for forwarder_config in forwarder_configs:
+                target_id = forwarder_config["target_chat_id"]
                 
-                # Verificar se contém "Lay 0x1" na primeira ou segunda linha
-                if ("lay 0x1" in first_line or "lay 0x1" in second_line) and target_id != -4622065752:
-                    logger.info(f"🎯 Estratégia 'Lay 0x1' detectada! Buscando análise do jogo...")
+                try:
+                    # Verificar filtros de estratégia para este forwarder específico
+                    if not self.should_forward_message(message.text, forwarder_config):
+                        logger.info(f"🚫 [{source_id}→{target_id}] Mensagem bloqueada pelos filtros de estratégia")
+                        continue
                     
-                    # Extrair liga e times da mensagem
-                    league, home_team, away_team = extract_league_and_teams(message.text)
-                    
-                    if league and home_team and away_team:
-                        logger.info(f"📊 Liga original: {league}")
-                        logger.info(f"🏠 Casa: {home_team}")
-                        logger.info(f"✈️  Fora: {away_team}")
+                    # Verificar se é estratégia "Lay 0x1" para buscar análise
+                    stats_text = ""
+                    # if message.text:
+                    #     first_line = message.text.split('\n')[0].lower().strip() if message.text else ""
+                    #     second_line = message.text.split('\n')[1].lower().strip() if len(message.text.split('\n')) > 1 else ""
                         
-                        # Converter nome da liga e verificar validade
-                        converted_league, league_validity_emoji = convert_league_name(league)
-                        logger.info(f"📊 Liga convertida: {converted_league}")
-                        
-                        # Buscar jogo no matchday JSON usando a liga convertida
-                        home_name, away_name, game_id = find_game_in_matchday(converted_league, home_team, away_team)
-                        
-                        if home_name and away_name and game_id:
-                            # Buscar análise do jogo e extrair estatísticas
-                            ppj_fav, media_gm_casa, media_gs_fora, url = fetch_game_analysis(home_name, away_name, game_id)
+                    #     # Verificar se contém "Lay 0x1" na primeira ou segunda linha
+                    #     if ("lay 0x1" in first_line or "lay 0x1" in second_line) and target_id != -4622065752:
+                    #         logger.info(f"🎯 Estratégia 'Lay 0x1' detectada! Buscando análise do jogo...")
                             
-                            if ppj_fav or media_gm_casa or media_gs_fora:
-                                logger.info(f"✅ Estatísticas extraídas com sucesso!")
+                            # Extrair liga e times da mensagem
+                            # league, home_team, away_team = extract_league_and_teams(message.text)
+                            
+                            # if league and home_team and away_team:
+                            #     logger.info(f"📊 Liga original: {league}")
+                            #     logger.info(f"🏠 Casa: {home_team}")
+                            #     logger.info(f"✈️  Fora: {away_team}")
                                 
-                                # Montar texto com estatísticas
-                                stats_text = "\n\n📊 Critérios:"
-                                # Adicionar critério de liga válida/inválida
-                                stats_text += f"\n🏆 Liga Válida: {league_validity_emoji}"
-                                if ppj_fav:
-                                  if float(ppj_fav) < 1.2:
-                                    stats_text += f"\n🎯 PPJ Fav: {ppj_fav} ❌"
-                                  else:
-                                    stats_text += f"\n🎯 PPJ Fav: {ppj_fav} ✅"
-                                if media_gm_casa:
-                                    if float(media_gm_casa) < 1:
-                                        stats_text += f"\n⚽ Média G.M Casa: {media_gm_casa} ❌"
-                                    else:
-                                        stats_text += f"\n⚽ Média G.M Casa: {media_gm_casa} ✅"
-                                if media_gs_fora:
-                                    if float(media_gs_fora) < 0.8:
-                                        stats_text += f"\n🛡️ Média G.S Fora: {media_gs_fora} ❌"
-                                    else:
-                                        stats_text += f"\n🛡️ Média G.S Fora: {media_gs_fora} ✅"
-                                stats_text += f"\n\n{url}"
-                            else:
-                                # Mesmo sem dados da partida, mostrar critério da liga
-                                stats_text = f"\n\n📊 Critérios:\n🏆 Liga Válida: {league_validity_emoji}"
-                                stats_text += f"\n\n{url}"
-                                logger.warning(f"⚠️  Não foi possível extrair estatísticas ({url})")
-                        else:
-                          # Mesmo sem encontrar o jogo, mostrar critério da liga
-                          stats_text = f"\n\n📊 Critérios:\n🏆 Liga Válida: {league_validity_emoji}"
-                          stats_text += f"\n\nDados da partida não encontrados"
-                          logger.warning(f"⚠️  Jogo não encontrado no matchday")
+                                # Converter nome da liga e verificar validade
+                                # converted_league, league_validity_emoji = convert_league_name(league)
+                                # logger.info(f"📊 Liga convertida: {converted_league}")
+                                
+                                # Buscar jogo no matchday JSON usando a liga convertida
+                                # home_name, away_name, game_id = find_game_in_matchday(converted_league, home_team, away_team)
+                                
+                            #     if home_name and away_name and game_id:
+                            #         # Buscar análise do jogo e extrair estatísticas
+                            #         ppj_fav, media_gm_casa, media_gs_fora, url = fetch_game_analysis(home_name, away_name, game_id)
+                                    
+                            #         if ppj_fav or media_gm_casa or media_gs_fora:
+                            #             logger.info(f"✅ Estatísticas extraídas com sucesso!")
+                                        
+                            #             # Montar texto com estatísticas
+                            #             stats_text = "\n\n📊 Critérios:"
+                            #             # Adicionar critério de liga válida/inválida
+                            #             stats_text += f"\n🏆 Liga Válida: {league_validity_emoji}"
+                            #             if ppj_fav:
+                            #               if float(ppj_fav) < 1.2:
+                            #                 stats_text += f"\n🎯 PPJ Fav: {ppj_fav} ❌"
+                            #               else:
+                            #                 stats_text += f"\n🎯 PPJ Fav: {ppj_fav} ✅"
+                            #             if media_gm_casa:
+                            #                 if float(media_gm_casa) < 1:
+                            #                     stats_text += f"\n⚽ Média G.M Casa: {media_gm_casa} ❌"
+                            #                 else:
+                            #                     stats_text += f"\n⚽ Média G.M Casa: {media_gm_casa} ✅"
+                            #             if media_gs_fora:
+                            #                 if float(media_gs_fora) < 0.8:
+                            #                     stats_text += f"\n🛡️ Média G.S Fora: {media_gs_fora} ❌"
+                            #                 else:
+                            #                     stats_text += f"\n🛡️ Média G.S Fora: {media_gs_fora} ✅"
+                            #             stats_text += f"\n\n{url}"
+                            #         else:
+                            #             # Mesmo sem dados da partida, mostrar critério da liga
+                            #             stats_text = f"\n\n📊 Critérios:\n🏆 Liga Válida: {league_validity_emoji}"
+                            #             stats_text += f"\n\n{url}"
+                            #             logger.warning(f"⚠️  Não foi possível extrair estatísticas ({url})")
+                            #     else:
+                            #       # Mesmo sem encontrar o jogo, mostrar critério da liga
+                            #       stats_text = f"\n\n📊 Critérios:\n🏆 Liga Válida: {league_validity_emoji}"
+                            #       stats_text += f"\n\nDados da partida não encontrados"
+                            #       logger.warning(f"⚠️  Jogo não encontrado no matchday")
+                            # else:
+                            #   stats_text += f"\n\nDados da partida não encontrados"
+                            #   logger.warning(f"⚠️  Não foi possível extrair liga/times da mensagem")
+                    
+                    # Formata a mensagem com estatísticas (se houver)
+                    if message.text:
+                        formatted_message = f"{message.text}{stats_text}"
                     else:
-                      stats_text += f"\n\nDados da partida não encontrados"
-                      logger.warning(f"⚠️  Não foi possível extrair liga/times da mensagem")
-            
-            # Formata a mensagem com estatísticas (se houver)
-            if message.text:
-                formatted_message = f"{message.text}{stats_text}"
-            else:
-                formatted_message = "[Mensagem com mídia]"
-            
-            # Encaminha para o grupo de destino específico usando o cliente apropriado
-            await self.send_app.send_message(
-                chat_id=forwarder_config["target_chat_id"],
-                text=formatted_message
-            )
-            
-            logger.info(f"✅ [{source_id}→{target_id}] Mensagem encaminhada automaticamente!")
+                        formatted_message = "[Mensagem com mídia]"
+                    
+                    # Encaminha para o grupo de destino específico usando o cliente apropriado
+                    await self.send_app.send_message(
+                        chat_id=target_id,
+                        text=formatted_message
+                    )
+                    
+                    logger.info(f"✅ [{source_id}→{target_id}] Mensagem encaminhada automaticamente!")
+                    
+                except Exception as e:
+                    logger.error(f"❌ [{source_id}→{target_id}] Erro ao encaminhar mensagem: {e}")
+                    # Continua para os próximos destinos mesmo se um falhar
+                    continue
             
         except Exception as e:
-            logger.error(f"❌ Erro ao encaminhar mensagem: {e}")
+            logger.error(f"❌ Erro geral ao processar mensagem: {e}")
     
     async def start(self):
         """Inicia o cliente e o monitoramento"""
