@@ -604,7 +604,7 @@ def fetch_game_analysis(home_name, away_name, game_id):
         away_clean = clean_team_name(away_name)
         
         # Construir URL
-        url = f"https://classic.cornerprobet.com/pt/analysis/{home_clean}-{away_clean}/{game_id}"
+        url = f"https://cornerprobet.com/pt/analysis/{home_clean}-{away_clean}/{game_id}"
         
         logger.info(f"🔍 Buscando análise: {url}")
         
