@@ -238,6 +238,32 @@ def get_country_variations(country):
     country_norm = normalize_text(country)
     return country_mappings.get(country_norm, [country_norm])
 
+def has_youth_category(text):
+    """
+    Verifica se o texto contém indicadores de categorias de base.
+    Ex: U19, U20, U21, U23, Sub-19, Sub-20, etc.
+    """
+    if not text:
+        return False
+    text_lower = text.lower()
+    # Padrões de categorias de base
+    youth_patterns = [
+        r'\bu\d{2}\b',  # U19, U20, U21, U23, etc.
+        r'\bsub[- ]?\d{2}\b',  # Sub-19, Sub 19, Sub19
+        r'\bjunior\b',
+        r'\bjuniores\b',
+        r'\breservas?\b',
+        r'\byouth\b',
+        r'\bacademy\b',
+        r'\bii\b',  # Time II (reserva)
+        r'\bb\b',  # Time B
+    ]
+    for pattern in youth_patterns:
+        if re.search(pattern, text_lower):
+            return True
+    return False
+
+
 def find_game_in_matchday(league, home_team, away_team):
     """
     Busca o jogo no arquivo JSON do matchday com estratégias de busca melhoradas.
@@ -247,6 +273,7 @@ def find_game_in_matchday(league, home_team, away_team):
     2. Busca por país (primeira palavra da liga)
     3. Para equipes: nome completo, depois primeiro nome
     4. Normalização com remoção de acentos
+    5. Prioriza jogos de equipes principais sobre categorias de base (U19, U20, etc.)
     
     Retorna: (home_name, away_name, game_id) ou (None, None, None)
     """
@@ -359,26 +386,19 @@ def find_game_in_matchday(league, home_team, away_team):
                     if len(league_words) > 0 and len(game_league_words) > 0:
                         original_country = league_words[0]  # Primeira palavra da liga original
                         
-                        # Mapear país para nacionalidades conhecidas
-                        from nationality_countries import nationality_map
-                        known_countries = set()
-                        for nat_list in nationality_map.values():
-                            known_countries.update([normalize_text(country) for country in nat_list])
+                        # Usar NACIONALITY_COUNTRIES para obter países conhecidos
+                        known_countries = set([normalize_text(c) for c in nationality_countries.NACIONALITY_COUNTRIES.values()])
+                        known_nationalities = set([normalize_text(n) for n in nationality_countries.NACIONALITY_COUNTRIES.keys()])
+                        all_known = known_countries | known_nationalities
                         
                         # Se o país original é conhecido e a liga do jogo não contém referência compatível
-                        if original_country in known_countries:
+                        if original_country in all_known:
                             # Verificar se há alguma compatibilidade entre os países
                             has_country_match = False
                             for word in game_league_words:
-                                if word in known_countries:
-                                    # Verificar se pertencem ao mesmo grupo de nacionalidades
-                                    for nat, countries in nationality_map.items():
-                                        norm_countries = [normalize_text(c) for c in countries]
-                                        if original_country in norm_countries and word in norm_countries:
-                                            has_country_match = True
-                                            break
-                                    if has_country_match:
-                                        break
+                                if word in all_known:
+                                    has_country_match = True
+                                    break
                             
                             if not has_country_match:
                                 logger.debug(f"🚫 Match rejeitado por incompatibilidade de país: '{league}' vs '{game_league}'")
@@ -419,6 +439,57 @@ def find_game_in_matchday(league, home_team, away_team):
             
             return False, ""
         
+        def select_best_match(matches, search_has_youth):
+            """
+            Seleciona o melhor match dentre os encontrados.
+            Prioriza jogos de equipes principais se a busca não especifica categoria de base.
+            
+            Args:
+                matches: lista de tuplas (game_home, game_away, game_id, match_desc, league_name)
+                search_has_youth: se a busca original contém indicador de categoria de base
+            
+            Retorna: (game_home, game_away, game_id, match_desc, league_name) ou None
+            """
+            if not matches:
+                return None
+            
+            if len(matches) == 1:
+                return matches[0]
+            
+            # Separar jogos por categoria
+            main_team_matches = []
+            youth_team_matches = []
+            
+            for match in matches:
+                game_home, game_away, game_id, match_desc, league_name = match
+                game_is_youth = has_youth_category(game_home) or has_youth_category(game_away)
+                
+                if game_is_youth:
+                    youth_team_matches.append(match)
+                else:
+                    main_team_matches.append(match)
+            
+            logger.info(f"📊 Encontrados {len(matches)} jogos correspondentes:")
+            logger.info(f"   - Times principais: {len(main_team_matches)}")
+            logger.info(f"   - Categorias de base: {len(youth_team_matches)}")
+            
+            # Se a busca especifica categoria de base, priorizar youth
+            if search_has_youth:
+                logger.info(f"🎯 Busca especifica categoria de base, priorizando jogos U19/U20/etc.")
+                if youth_team_matches:
+                    return youth_team_matches[0]
+                return main_team_matches[0] if main_team_matches else matches[0]
+            else:
+                # Busca NÃO especifica categoria de base, priorizar time principal
+                logger.info(f"🎯 Busca NÃO especifica categoria de base, priorizando times principais")
+                if main_team_matches:
+                    return main_team_matches[0]
+                # Se só tem jogos de base, retornar mesmo assim (pode ser o que o usuário quer)
+                return youth_team_matches[0] if youth_team_matches else matches[0]
+        
+        # Verificar se a busca original contém indicadores de categoria de base
+        search_has_youth = has_youth_category(home_team) or has_youth_category(away_team) or has_youth_category(league)
+        
         # ESTRATÉGIA 0: Busca usando cache de equivalências
         logger.info(f"📋 Verificando cache de equivalências...")
         
@@ -426,6 +497,9 @@ def find_game_in_matchday(league, home_team, away_team):
         cached_league = league_cache.get_equivalent(league)
         if cached_league:
             logger.info(f"💾 Liga encontrada no cache: '{league}' → '{cached_league}'")
+            
+            # Coletar todos os jogos correspondentes no cache
+            cache_matches = []
             
             # Buscar a liga equivalente no JSON
             for time_slot, leagues in data['data'].items():
@@ -445,17 +519,26 @@ def find_game_in_matchday(league, home_team, away_team):
                                 if cached_home and cached_away:
                                     if (normalize_text(game_home) == normalize_text(cached_home) and 
                                         normalize_text(game_away) == normalize_text(cached_away)):
-                                        logger.info(f"✅ Jogo encontrado via cache completo: {game_home} vs {game_away} (ID: {game['id']})")
-                                        return game_home, game_away, game['id']
+                                        cache_matches.append((game_home, game_away, game['id'], "cache completo", league_name))
                                 
                                 # Se não tem cache completo de equipes, tentar combinações normais
                                 success, match_desc = try_all_team_combinations(game_home, game_away, "cache de liga", league_name)
                                 if success:
-                                    logger.info(f"✅ Jogo encontrado (cache de liga, {match_desc}): {game_home} vs {game_away} (ID: {game['id']})")
-                                    # Salvar equivalências de equipes descobertas
-                                    team_cache.add_equivalence(home_team, game_home)
-                                    team_cache.add_equivalence(away_team, game_away)
-                                    return game_home, game_away, game['id']
+                                    cache_matches.append((game_home, game_away, game['id'], f"cache de liga, {match_desc}", league_name))
+            
+            # Selecionar o melhor match
+            if cache_matches:
+                best_match = select_best_match(cache_matches, search_has_youth)
+                if best_match:
+                    game_home, game_away, game_id, match_desc, league_name = best_match
+                    logger.info(f"✅ Jogo selecionado ({match_desc}): {game_home} vs {game_away} (ID: {game_id})")
+                    # Salvar equivalências de equipes descobertas
+                    team_cache.add_equivalence(home_team, game_home)
+                    team_cache.add_equivalence(away_team, game_away)
+                    return game_home, game_away, game_id
+        
+        # Coletar todos os matches das estratégias 1 e 2
+        all_matches = []
         
         # Percorrer todos os horários
         for time_slot, leagues in data['data'].items():
@@ -475,12 +558,7 @@ def find_game_in_matchday(league, home_team, away_team):
                             # Tentar todas as combinações de nomes
                             success, match_desc = try_all_team_combinations(game_home, game_away, "liga direta", league_name)
                             if success:
-                                logger.info(f"✅ Jogo encontrado (liga direta, {match_desc}): {game_home} vs {game_away} (ID: {game['id']})")
-                                # Salvar equivalências descobertas
-                                league_cache.add_equivalence(league, league_name)
-                                team_cache.add_equivalence(home_team, game_home)
-                                team_cache.add_equivalence(away_team, game_away)
-                                return game_home, game_away, game['id']
+                                all_matches.append((game_home, game_away, game['id'], f"liga direta, {match_desc}", league_name))
                 
                 # ESTRATÉGIA 2: Busca por país (primeira palavra da liga)
                 else:
@@ -506,15 +584,24 @@ def find_game_in_matchday(league, home_team, away_team):
                                 # Tentar todas as combinações de nomes
                                 success, match_desc = try_all_team_combinations(game_home, game_away, "busca por país", league_name)
                                 if success:
-                                    logger.info(f"✅ Jogo encontrado (busca por país, {match_desc}): {game_home} vs {game_away} (ID: {game['id']})")
-                                    # Salvar equivalências descobertas
-                                    league_cache.add_equivalence(league, league_name)
-                                    team_cache.add_equivalence(home_team, game_home)
-                                    team_cache.add_equivalence(away_team, game_away)
-                                    return game_home, game_away, game['id']
+                                    all_matches.append((game_home, game_away, game['id'], f"busca por país, {match_desc}", league_name))
+        
+        # Selecionar o melhor match das estratégias 1 e 2
+        if all_matches:
+            best_match = select_best_match(all_matches, search_has_youth)
+            if best_match:
+                game_home, game_away, game_id, match_desc, league_name = best_match
+                logger.info(f"✅ Jogo selecionado ({match_desc}): {game_home} vs {game_away} (ID: {game_id})")
+                # Salvar equivalências descobertas
+                league_cache.add_equivalence(league, league_name)
+                team_cache.add_equivalence(home_team, game_home)
+                team_cache.add_equivalence(away_team, game_away)
+                return game_home, game_away, game_id
         
         # ESTRATÉGIA 3: Busca apenas pelas equipes em todas as ligas (fallback)
         logger.info(f"🔄 Tentando busca geral pelas equipes em todas as ligas...")
+        fallback_matches = []
+        
         for time_slot, leagues in data['data'].items():
             for league_name, league_data in leagues.items():
                 if 'games' in league_data:
@@ -525,12 +612,19 @@ def find_game_in_matchday(league, home_team, away_team):
                         # Tentar todas as combinações de nomes
                         success, match_desc = try_all_team_combinations(game_home, game_away, "busca geral", league_name)
                         if success:
-                            logger.info(f"✅ Jogo encontrado (busca geral, {match_desc}) na liga '{league_name}': {game_home} vs {game_away} (ID: {game['id']})")
-                            # Salvar equivalências descobertas
-                            league_cache.add_equivalence(league, league_name)
-                            team_cache.add_equivalence(home_team, game_home)
-                            team_cache.add_equivalence(away_team, game_away)
-                            return game_home, game_away, game['id']
+                            fallback_matches.append((game_home, game_away, game['id'], f"busca geral, {match_desc}", league_name))
+        
+        # Selecionar o melhor match do fallback
+        if fallback_matches:
+            best_match = select_best_match(fallback_matches, search_has_youth)
+            if best_match:
+                game_home, game_away, game_id, match_desc, league_name = best_match
+                logger.info(f"✅ Jogo selecionado ({match_desc}) na liga '{league_name}': {game_home} vs {game_away} (ID: {game_id})")
+                # Salvar equivalências descobertas
+                league_cache.add_equivalence(league, league_name)
+                team_cache.add_equivalence(home_team, game_home)
+                team_cache.add_equivalence(away_team, game_away)
+                return game_home, game_away, game_id
         
         logger.warning(f"⚠️  Jogo não encontrado após busca extensiva: {league} - {home_team} vs {away_team}")
         return None, None, None
@@ -1033,12 +1127,23 @@ class AutoMessageForwarder:
                 me_bot = await self.bot_app.get_me()
                 logger.info(f"🤖 Bot (envio): {me_bot.first_name} (@{me_bot.username or 'sem_username'})")
                 
-                # Carregar diálogos para popular cache de peers (apenas usuário)
-                logger.info("🔄 Carregando cache de diálogos...")
-                dialog_count = 0
+                # Carregar diálogos para popular cache de peers (usuário)
+                logger.info("🔄 Carregando cache de diálogos do usuário...")
+                user_dialog_count = 0
                 async for dialog in self.user_app.get_dialogs(limit=100):
-                    dialog_count += 1
-                logger.info(f"✅ Cache carregado com {dialog_count} diálogos")
+                    user_dialog_count += 1
+                logger.info(f"✅ Cache do usuário carregado com {user_dialog_count} diálogos")
+                
+                # Para o bot, carregar o cache dos destinos configurados
+                logger.info("🔄 Carregando cache de destinos do bot...")
+                for forwarder in self.config["forwarders"]:
+                    target_id = forwarder["target_chat_id"]
+                    try:
+                        # Tentar acessar o chat para popular o cache do bot
+                        chat = await self.bot_app.get_chat(target_id)
+                        logger.info(f"✅ Bot: cache carregado para destino '{getattr(chat, 'title', target_id)}'")
+                    except Exception as e:
+                        logger.warning(f"⚠️  Bot: não conseguiu carregar cache para destino {target_id}: {e}")
                 
                 await self._verify_forwarders()
                 
