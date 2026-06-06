@@ -16,5 +16,44 @@
         "strategies": ["over", "under", "corner", "gol", "btts"]
       }
     }
+  ],
+  "scenario_forwarders": [
+    {
+      "source_chat_id": -1000000000000,
+      "forum_chat_id": -1000000000001,
+      "source_name": "Grupo Source",
+      "forum_name": "Alertas por Cenário",
+      "strategy_filters": {
+        "enabled": true,
+        "mode": "whitelist",
+        "strategies": ["mapa-de-calor"]
+      },
+      "scenario_topics": {
+        "casa favorito perdendo com um gol de diferença": 0,
+        "casa favorito ganhando com um gol de diferença": 0,
+        "fora favorito perdendo com um gol de diferença": 0,
+        "fora favorito ganhando com um gol de diferença": 0,
+        "casa favorito perdendo com dois gols de diferença": 0,
+        "casa favorito ganhando com dois gols de diferença": 0,
+        "fora favorito perdendo com dois gols de diferença": 0,
+        "fora favorito ganhando com dois gols de diferença": 0,
+        "casa favorito perdendo com mais de dois gols de diferença": 0,
+        "casa favorito ganhando com mais de dois gols de diferença": 0,
+        "fora favorito perdendo com mais de dois gols de diferença": 0,
+        "fora favorito ganhando com mais de dois gols de diferença": 0,
+        "casa favorito empatando com gols": 0,
+        "fora favorito empatando com gols": 0,
+        "casa favorito empatando sem gols": 0,
+        "fora favorito empatando sem gols": 0,
+        "casa parelho perdendo com um gol de diferença": 0,
+        "fora parelho perdendo com um gol de diferença": 0,
+        "casa parelho perdendo com dois gols de diferença": 0,
+        "fora parelho perdendo com dois gols de diferença": 0,
+        "casa parelho perdendo com mais de dois gols de diferença": 0,
+        "fora parelho perdendo com mais de dois gols de diferença": 0,
+        "parelho empatando com gols": 0,
+        "parelho empatando sem gols": 0
+      }
+    }
   ]
 }
