@@ -6,10 +6,15 @@ Refresh scenario topic ids in client_config.json for an existing forum.
 import asyncio
 import json
 from pathlib import Path
+import sys
 
 from pyrogram import Client, raw
 
-from scenario_classifier import SCENARIO_NAMES
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from analysis.scenario_classifier import SCENARIO_NAMES
 
 
 CONFIG_PATH = Path("client_config.json")

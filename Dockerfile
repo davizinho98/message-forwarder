@@ -36,4 +36,4 @@ EXPOSE 8000
 # STRATEGY_FILTERS_STRATEGIES - estratégias separadas por vírgula
 
 # Comando para executar o bot
-CMD ["python", "auto_forwarder.py"]
+CMD ["python", "forwarders/auto_forwarder.py"]

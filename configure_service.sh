@@ -5,7 +5,7 @@ echo "================================================="
 echo ""
 
 # Verificar se está no diretório correto
-if [ ! -f "auto_forwarder.py" ]; then
+if [ ! -f "forwarders/auto_forwarder.py" ]; then
     echo "❌ Execute este script no diretório do message-forwarder"
     exit 1
 fi
@@ -61,7 +61,7 @@ User=$USER
 WorkingDirectory=$PROJECT_DIR
 Environment=PYTHONPATH=$PROJECT_DIR
 EnvironmentFile=$PROJECT_DIR/message-forwarder.env
-ExecStart=$PYTHON_PATH auto_forwarder.py
+ExecStart=$PYTHON_PATH forwarders/auto_forwarder.py
 Restart=always
 RestartSec=10
 

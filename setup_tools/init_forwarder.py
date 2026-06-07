@@ -126,7 +126,7 @@ async def initialize_forwarder():
         print()
         print("📋 Próximos passos:")
         print("   1. Se não há mensagens recentes, envie /start para @cornerpro2_bot")
-        print("   2. Execute: python auto_forwarder.py")
+        print("   2. Execute: python forwarders/auto_forwarder.py")
         print("   3. O sistema ficará monitorando automaticamente")
         
         return True

@@ -65,7 +65,7 @@ cp client_config.example.json client_config.json
 # Edite client_config.json com suas credenciais
 
 # 4. Executar
-python auto_forwarder.py
+python forwarders/auto_forwarder.py
 ```
 
 ## ⚙️ **Configuração**
@@ -258,7 +258,7 @@ Isso vai listar todos os chats/grupos/canais acessíveis e seus IDs.
 ## 🎮 **Execução**
 
 ```bash
-python3 auto_forwarder.py
+python3 forwarders/auto_forwarder.py
 ```
 
 ### **Primeira Execução:**
@@ -344,11 +344,15 @@ STRATEGY_FILTERS_ENABLED=false
 
 ```
 message-forwarder/
-├── auto_forwarder.py              # 🤖 Sistema principal
-├── get_chat_ids.py                # 🔍 Script para obter IDs de chats
-├── setup_filters.py               # 🎯 Configurador de filtros de estratégia
-├── test_filters.py                # 🧪 Testador de filtros
-├── generate_env.py                # 🌐 Gerador de variáveis de ambiente
+├── forwarders/                    # 🤖 Encaminhadores Telegram
+│   ├── auto_forwarder.py          # Sistema principal
+│   └── scenario_forwarder.py      # Encaminhamento por cenário
+├── exports/                       # 📊 Exportações XLSX
+├── analysis/                      # 🎯 Classificação e regras de cenário
+├── data/                          # 🧾 Listas e dicionários auxiliares
+├── setup_tools/                   # 🛠️ Scripts de configuração Telegram
+├── tools/                         # 🔍 Utilitários e coleta de dados
+├── tests/                         # 🧪 Testes automatizados
 ├── client_config.example.json     # 📝 Exemplo de configuração
 ├── client_config.json             # ⚙️ Sua configuração (criar)
 ├── requirements.txt               # 📦 Dependências Python
@@ -439,7 +443,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
-CMD ["python", "auto_forwarder.py"]
+CMD ["python", "forwarders/auto_forwarder.py"]
 ```
 
 #### **4. 📱 Termux (Android)**
@@ -454,7 +458,7 @@ pkg install python git
 pip install pyrogram tgcrypto
 git clone https://github.com/seu-usuario/message-forwarder
 cd message-forwarder
-python auto_forwarder.py
+python forwarders/auto_forwarder.py
 ```
 
 #### **5. 💻 VPS Gratuito - Fly.io**

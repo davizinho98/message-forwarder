@@ -8,12 +8,18 @@ import json
 import logging
 import os
 import secrets
+import sys
+from pathlib import Path
 
 import requests
 from pyrogram import Client, filters, raw
 from pyrogram.types import Message
 
-from scenario_classifier import (
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from analysis.scenario_classifier import (
     SCENARIO_NAMES,
     parse_and_classify,
     should_forward_strategy,

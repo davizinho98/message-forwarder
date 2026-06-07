@@ -7,9 +7,9 @@ from pathlib import Path
 from pprint import pformat
 
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parents[1]
 SOURCE_FILE = BASE_DIR / "leagues.txt"
-OUTPUT_FILE = BASE_DIR / "unique_leagues.py"
+OUTPUT_FILE = BASE_DIR / "data" / "unique_leagues.py"
 
 
 def load_unique_leagues(source_file=SOURCE_FILE):
@@ -31,8 +31,8 @@ def load_unique_leagues(source_file=SOURCE_FILE):
 
 def write_unique_leagues(leagues, output_file=OUTPUT_FILE):
     content = (
-        "# Arquivo gerado por generate_unique_leagues.py\n"
-        "# Para atualizar, edite leagues.txt e rode: python3 generate_unique_leagues.py\n\n"
+        "# Arquivo gerado por tools/generate_unique_leagues.py\n"
+        "# Para atualizar, edite leagues.txt e rode: python3 tools/generate_unique_leagues.py\n\n"
         f"LEAGUES = {pformat(leagues, width=100, sort_dicts=False)}\n"
     )
     Path(output_file).write_text(content, encoding="utf-8")

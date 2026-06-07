@@ -11,6 +11,7 @@ import logging
 import os
 from pathlib import Path
 import re
+import sys
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 from zoneinfo import ZoneInfo
 
@@ -18,7 +19,11 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from scenario_classifier import SCENARIO_NAMES, AlertData, parse_and_classify
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from analysis.scenario_classifier import SCENARIO_NAMES, AlertData, parse_and_classify
 
 
 CONFIG_PATH = "client_config.json"

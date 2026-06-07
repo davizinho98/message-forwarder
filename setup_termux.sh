@@ -34,7 +34,7 @@ echo ""
 cat > start_termux.sh << 'EOF'
 #!/bin/bash
 cd ~/message-forwarder
-python auto_forwarder.py
+python forwarders/auto_forwarder.py
 EOF
 
 chmod +x start_termux.sh

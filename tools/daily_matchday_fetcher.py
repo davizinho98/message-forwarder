@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 BRASILIA_TZ = pytz.timezone('America/Sao_Paulo')
 
 # Diretório para salvar os arquivos JSON
-DATA_DIR = Path(__file__).parent / "matchday_data"
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATA_DIR = BASE_DIR / "matchday_data"
 DATA_DIR.mkdir(exist_ok=True)
 
 def fetch_matchday():
@@ -179,4 +180,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

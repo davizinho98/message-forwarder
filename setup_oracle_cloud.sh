@@ -42,7 +42,7 @@ cat > start_forwarder.sh << 'EOF'
 #!/bin/bash
 cd ~/message-forwarder
 source venv/bin/activate
-python auto_forwarder.py
+python forwarders/auto_forwarder.py
 EOF
 
 chmod +x start_forwarder.sh
@@ -58,7 +58,7 @@ After=network.target
 Type=simple
 User=$USER
 WorkingDirectory=/home/$USER/message-forwarder
-ExecStart=/home/$USER/message-forwarder/venv/bin/python auto_forwarder.py
+ExecStart=/home/$USER/message-forwarder/venv/bin/python forwarders/auto_forwarder.py
 Restart=always
 RestartSec=10
 
@@ -75,7 +75,7 @@ echo ""
 echo "2. Teste manualmente:"
 echo "   cd ~/message-forwarder"
 echo "   source venv/bin/activate"
-echo "   python auto_forwarder.py"
+echo "   python forwarders/auto_forwarder.py"
 echo ""
 echo "3. Para rodar automaticamente (após testar):"
 echo "   sudo systemctl enable message-forwarder"

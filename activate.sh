@@ -18,7 +18,7 @@ source venv/bin/activate
 echo "✅ Ambiente virtual ativado!"
 echo ""
 echo "📋 Comandos disponíveis:"
-echo "   python auto_forwarder.py    # Executar o forwarder"
+echo "   python forwarders/auto_forwarder.py    # Executar o forwarder"
 echo "   deactivate                  # Desativar ambiente virtual"
 echo ""
 

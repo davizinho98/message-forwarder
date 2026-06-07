@@ -10,8 +10,7 @@ import logging
 import os
 import re
 import requests
-import invalid_leagues
-import nationality_countries
+import sys
 from datetime import datetime
 from pathlib import Path
 from unidecode import unidecode
@@ -19,6 +18,12 @@ from bs4 import BeautifulSoup
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.enums import ChatType
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from data import invalid_leagues, nationality_countries
 
 # Configuração de logging
 logging.basicConfig(
@@ -36,9 +41,10 @@ def normalize_text(text):
     return unidecode(text.lower().strip())
 
 # Diretórios
-MATCHDAY_DATA_DIR = Path(__file__).parent / "matchday_data"
-ANALYSIS_HTML_DIR = Path(__file__).parent / "analysis_html"
-EQUIVALENCES_DIR = Path(__file__).parent / "equivalences"
+BASE_DIR = ROOT_DIR
+MATCHDAY_DATA_DIR = BASE_DIR / "matchday_data"
+ANALYSIS_HTML_DIR = BASE_DIR / "analysis_html"
+EQUIVALENCES_DIR = BASE_DIR / "equivalences"
 ANALYSIS_HTML_DIR.mkdir(exist_ok=True)
 EQUIVALENCES_DIR.mkdir(exist_ok=True)
 

@@ -4,12 +4,12 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from export_scenario_xlsx import (
+from exports.export_scenario_xlsx import (
     build_workbook,
     calculate_unit_results,
     extract_goal_outcome,
 )
-from scenario_classifier import SCENARIO_NAMES
+from analysis.scenario_classifier import SCENARIO_NAMES
 
 
 RED_MESSAGE = """

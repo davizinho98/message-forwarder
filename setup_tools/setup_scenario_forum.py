@@ -6,12 +6,17 @@ Create a Telegram forum and topics for scenario-based forwarding.
 import asyncio
 import json
 from pathlib import Path
+import sys
 
 from pyrogram import Client, raw
 from pyrogram.errors import FloodWait
 from pyrogram.types import ChatPrivileges
 
-from scenario_classifier import SCENARIO_NAMES
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from analysis.scenario_classifier import SCENARIO_NAMES
 
 
 CONFIG_PATH = Path("client_config.json")
@@ -93,7 +98,7 @@ async def setup_scenario_forum():
     print("✅ client_config.json atualizado com scenario_forwarders")
     print()
     print("🚀 Para iniciar o novo serviço:")
-    print("   python3 scenario_forwarder.py")
+    print("   python3 forwarders/scenario_forwarder.py")
     return True
 
 

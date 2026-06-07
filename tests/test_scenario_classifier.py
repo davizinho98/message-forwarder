@@ -4,7 +4,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scenario_classifier import (
+from analysis.scenario_classifier import (
     SCENARIO_NAMES,
     classify_alert,
     parse_alert_message,

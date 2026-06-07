@@ -7,7 +7,7 @@ from openpyxl import Workbook, load_workbook
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from export_league_results_xlsx import (
+from exports.export_league_results_xlsx import (
     aggregate_league_results,
     build_workbook,
 )
@@ -77,7 +77,7 @@ class ExportLeagueResultsXlsxTest(unittest.TestCase):
 
 
 def aggregate_like(items):
-    from export_league_results_xlsx import LeagueStats
+    from exports.export_league_results_xlsx import LeagueStats
 
     return [
         LeagueStats(league=league, greens=greens, reds=reds)

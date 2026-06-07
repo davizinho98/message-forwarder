@@ -1,5 +1,5 @@
-# Arquivo gerado por generate_unique_leagues.py
-# Para atualizar, edite leagues.txt e rode: python3 generate_unique_leagues.py
+# Arquivo gerado por tools/generate_unique_leagues.py
+# Para atualizar, edite leagues.txt e rode: python3 tools/generate_unique_leagues.py
 
 LEAGUES = ['Brazil Serie A',
  'Algeria Ligue 1',

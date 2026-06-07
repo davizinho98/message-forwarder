@@ -85,7 +85,7 @@ async def create_new_group():
 
 🚀 **Para ativar:**
 ```bash
-python auto_forwarder.py
+python forwarders/auto_forwarder.py
 ```
 
 ✅ **Todas as mensagens do CornerProBot2 aparecerão aqui automaticamente!**"""
@@ -95,7 +95,7 @@ python auto_forwarder.py
             print()
             
             print("🎯 **Próximos passos:**")
-            print("   1. Execute: python auto_forwarder.py")
+            print("   1. Execute: python forwarders/auto_forwarder.py")
             print("   2. Envie uma mensagem para @cornerpro2_bot para testar")
             print("   3. A mensagem deve aparecer neste grupo automaticamente!")
             print()
